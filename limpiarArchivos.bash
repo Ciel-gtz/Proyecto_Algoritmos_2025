@@ -22,9 +22,9 @@ if ! [[ "$limit" =~ ^[0-9]+$ ]]; then
 fi
 
 # Verifica si el archivo ya fue simplificado (solo utilizando el nombre)
-if [[ "$source" =~ -SHORT ]]; then
-    echo "Aviso: Archivo -SHORT ya existe."
-    exit 0
+if [[ "$source" =~ _CLEAN-SHORT ]]; then
+    echo "Aviso: Archivo _CLEAN-SHORT ya existe."
+    exit 2
 fi
 
 
