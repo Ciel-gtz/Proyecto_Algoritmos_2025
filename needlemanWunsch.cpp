@@ -50,8 +50,10 @@ int limpiarArchivos(string nombre_archivo, int limite){
 			 << "\n\tSe utilizará la longitud predeterminada del archivo. Si desea cambiar la longitud, borre del nombre del archivo '_CLEAN-SHORT' y corra este código otra vez." << endl;
 		return 2;
 	}
+
 	return 0;
 }
+
 
 	// | Actualiza el nombre del archivo en el caso 0 de limpiarArchivos()
 string actualizarNombreArchivo(string nombre_archivo) {
@@ -61,6 +63,29 @@ string actualizarNombreArchivo(string nombre_archivo) {
 
 	// Agrega '_CLEAN-SHORT.fna' a la variable
 	return nuevo_nombre + "_CLEAN-SHORT.fna";
+}
+
+
+	// | Guarda la información del archivo en una string
+string guardarInfo(string nombre_archivo) {
+	string secuencia;
+	string linea;
+
+	ifstream archivo(nombre_archivo);
+
+	// Error de lectura
+	if (!archivo) {
+        cerr << "\n\tNo se pudo abrir el archivo " << nombre_archivo << endl;
+        return "Err";
+    }
+
+	// Obtiene todas las líneas del archivo y las guarda en una sola string
+	while (getline(archivo, linea)) {
+		secuencia += linea;
+	}
+
+	archivo.close();
+	return secuencia;
 }
 
 
@@ -138,19 +163,33 @@ int main(int argc, char** argv) {
 	valor1 = limpiarArchivos(C1, limite);
 	valor2 = limpiarArchivos(C2, limite);
 	
+
 	// | Se realizan los casos dependiendo del valor retornado por limpiarArchivos()
 	if (valor1 == 1 || valor2 == 1) {
 		// Hubo algún error al leer los archivos
 		return 1;
 	} 
+	
 	// | Se renombran los archivos si es que fueron limpiados
-	else if (valor1 == 0) {
-		actualizarNombreArchivo(C1);
-	} else if (valor2 == 0) {
-		actualizarNombreArchivo(C2);
+	if (valor1 == 0) {
+		C1 = actualizarNombreArchivo(C1);
+	} 
+	if (valor2 == 0) {
+		C2 = actualizarNombreArchivo(C2);
 	}
 
+
 	// <──| Sobre lectura de archivos |──>
+
+	// | C1 y C2 Pasan de ser nombres de archivos a ser las secuencias leídas de estos archivos
+	C1 = guardarInfo(C1);
+	C2 = guardarInfo(C2);
+
+	// | Error al leer los archivos
+	if (C1 == "Err" || C2 == "Err") {
+		return 1;
+	}
 	
+
 	return 0;
 }
