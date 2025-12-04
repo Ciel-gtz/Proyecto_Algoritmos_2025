@@ -33,7 +33,7 @@ int controlINT() {
 	// | Corre el bash
 int limpiar_archivos(string filename, int limit){
 
-	string run = "bash " + filename + " " + to_string(limit);
+	string run = "bash limpiarArchivos.bash " + filename + " " + to_string(limit);
 	int status = system(run.c_str());
 
 	if (status == 256) { // 256 es equivalente a exit 1 de bash [256 x exitvalue]

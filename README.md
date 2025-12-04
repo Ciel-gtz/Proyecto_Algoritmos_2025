@@ -9,3 +9,6 @@ https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_000001405.40/
 (comparing human to...)
 https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_036323735.1/
 (common rat)
+
+para correrlo fácil:
+g++ needlemanWunsch.cpp -o needlemanWunsch && ./needlemanWunsch -C1 HUMAN.fna -C2 RAT.fna -U matrizPuntuacion.csv -V 2
