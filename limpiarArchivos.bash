@@ -32,13 +32,8 @@ fi
 # ─────────────| Sobre outfile |─────────────¬
 
 # No muestra(-v) cualquier linea que inicie(^) con '>' del archivo a elección
-grep -v '^>' "${source}.fna" \
-
-# Borra los nucleotidos ambiguos
-| tr -d 'Nn' \
-
-# Coloca los cambios en un archivo nuevo
-> "${outfile}.fna"
+# Borra los nucleotidos ambiguos y coloca los cambios en otro archivo
+grep -v '^>' "${source}.fna" | grep -v 'N' | grep -v 'n' > "${outfile}.fna"
 
 
 
@@ -57,8 +52,7 @@ tr 'atcg' 'ATCG' < "${limit_applied}.fna" > temp && mv temp "${limit_applied}.fn
 # Crea archivo si no existe (-p no da mensaje de error si es que ya está)
 mkdir -p FASTAS
 
-# Mueve los archivos utilizados/creados a la carpeta FASTAS
+# Mueve el archivo source y el archivo outfile a la carpeta FASTAS
 mv "${source}.fna" "${outfile}.fna" FASTAS
 
 # "${limit_applied}.fna" se mantiene en el directorio actual
-
