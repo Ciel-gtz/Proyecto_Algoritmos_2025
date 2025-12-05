@@ -23,7 +23,7 @@ fi
 
 # Verifica si el archivo ya fue simplificado (solo utilizando el nombre)
 if [[ "$source" =~ _CLEAN-SHORT ]]; then
-    echo "Aviso: Archivo _CLEAN-SHORT ya existe."
+    echo "Aviso: El archivo con formato _CLEAN-SHORT ya existe."
     exit 2
 fi
 

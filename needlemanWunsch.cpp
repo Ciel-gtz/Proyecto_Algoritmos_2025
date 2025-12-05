@@ -28,18 +28,19 @@ int controlINT() {
 }
 
 // ─────────────| Lectura de CSV (con salto de encabezados) |─────────────¬
+
 vector<vector<int>> leerCSV(const string& nombre_archivo) {
     vector<vector<int>> matriz;
+    string linea;
+    bool primeraFila = true;   // ← para saltar la fila de encabezados
+
     ifstream archivo(nombre_archivo);
 
     if (!archivo.is_open()) {
         cerr << "!\tNo se pudo abrir el archivo CSV: " << nombre_archivo << endl;
         return matriz;
     }
-
-    string linea;
-    bool primeraFila = true;   // ← para saltar la fila de encabezados
-
+    
     while (getline(archivo, linea)) {
 
         // Si es la primera fila → se ignora COMPLETAMENTE
@@ -50,6 +51,7 @@ vector<vector<int>> leerCSV(const string& nombre_archivo) {
 
         vector<int> fila;
         string valor;
+
         bool primeraColumna = true; // ← para saltar la columna de encabezados
 
         for (char c : linea) {
@@ -162,6 +164,7 @@ int main(int argc, char** argv) {
 
 	string C1, C2, U; 
 	int V, limite, valor1, valor2; 
+    string nucleotidos[4] = {"A", "T", "C", "G"};
 
 	/*  ─────────────────────────────
 	C1 = Secuencia horizontal | fna
@@ -255,7 +258,11 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 	
-	    // ─────────────| Leer y Verificar CSV |─────────────¬
+    cout << "\nCadena 1: " << C1 << "\nCadena 2: " << C2 << "\n";
+
+
+    // <──| Leer y Verificar CSV |──>
+
     vector<vector<int>> matrizPuntuacion = leerCSV(U);
 
     if (matrizPuntuacion.empty()) {
@@ -263,12 +270,15 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    cout << "\n> Matriz de puntuación cargada correctamente (" 
-        << matrizPuntuacion.size() << " filas):\n";
+    // | Impresión de matrizPuntuacion.csv
+    cout << "\n\t<──| Matriz de puntuacion |──>\n\t\t|" 
+         << nucleotidos[0] << "\t|" << nucleotidos[1] << "\t|" << nucleotidos[2] << "\t|" << nucleotidos[3] << "\n";
 
-    for (const vector<int>& fila : matrizPuntuacion) {  // recorre para verificar
+    for (const vector<int>& fila : matrizPuntuacion) {  
+        cout << "\t| " << nucleotidos[&fila - &matrizPuntuacion[0]]; 
+
         for (int num : fila) {
-            cout << num << " "; // imprime la matriz para saber que se lee
+            cout << "\t|" << num; // imprime la matriz
         }
         cout << "\n";
     }
