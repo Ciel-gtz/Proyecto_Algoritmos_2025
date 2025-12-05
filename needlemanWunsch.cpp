@@ -27,6 +27,72 @@ int controlINT() {
     }
 }
 
+// ─────────────| Lectura de CSV (con salto de encabezados) |─────────────¬
+vector<vector<int>> leerCSV(const string& nombre_archivo) {
+    vector<vector<int>> matriz;
+    ifstream archivo(nombre_archivo);
+
+    if (!archivo.is_open()) {
+        cerr << "!\tNo se pudo abrir el archivo CSV: " << nombre_archivo << endl;
+        return matriz;
+    }
+
+    string linea;
+    bool primeraFila = true;   // ← para saltar la fila de encabezados
+
+    while (getline(archivo, linea)) {
+
+        // Si es la primera fila → se ignora COMPLETAMENTE
+        if (primeraFila) {
+            primeraFila = false;
+            continue;
+        }
+
+        vector<int> fila;
+        string valor;
+        bool primeraColumna = true; // ← para saltar la columna de encabezados
+
+        for (char c : linea) {
+
+            if (c == ',') {
+                if (primeraColumna) {
+                    // Saltar la primera columna (encabezado de fila)
+                    primeraColumna = false;
+                    valor.clear();
+                    continue;
+                }
+
+                if (!valor.empty()) {
+                    try {
+                        int numero = stoi(valor);
+                        fila.push_back(numero);
+                    } catch (...) {
+                        // Valor inválido → ignorar
+                    }
+                    valor.clear();
+                }
+            } else {
+                valor.push_back(c);
+            }
+        }
+
+        // Procesar último valor de la fila
+        if (!valor.empty() && !primeraColumna) {
+            try {
+                int numero = stoi(valor);
+                fila.push_back(numero);
+            } catch (...) {
+                // Ignorar si no es válido
+            }
+        }
+
+        matriz.push_back(fila);
+    }
+
+    archivo.close();
+    return matriz;
+}
+
 
 // ─────────────| Sobre los archivos |─────────────¬
 
@@ -88,7 +154,6 @@ string guardarInfo(string nombre_archivo) {
 	return secuencia;
 }
 
-
 // ─────────────| Main |─────────────¬
 
 int main(int argc, char** argv) {
@@ -137,13 +202,13 @@ int main(int argc, char** argv) {
             V = atoi(argv[++i]);
 
 			// Verifica que V sea un número mayor a 0
-			if ((V == 0) || (V <= 0) || (!V)) {
-				cout << "!\tEl valor de penalización por gap (-V) debe ser un número mayor a 0." 
-					 << "\n\tValor ingresado ➜ V = '" << V << "'" << endl;
-				return 1;
-			}
-        } 
+			if ((V == 0) || (V <= 0)) {
+                cout << "!\tEl valor de penalización por gap (-V) debe ser mayor a 0.\n";
+                return 1;
+            }
+        }
     }
+
 
 	// | Algún argumento no tiene valor asignado ➜ sale del programa
 	if (C1.empty() || C2.empty() || U.empty()) {
@@ -190,6 +255,25 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 	
+	    // ─────────────| Leer y Verificar CSV |─────────────¬
+    vector<vector<int>> matrizPuntuacion = leerCSV(U);
+
+    if (matrizPuntuacion.empty()) {
+        cerr << "!\tError al cargar la matriz de puntuación.\n";
+        return 1;
+    }
+
+    cout << "\n> Matriz de puntuación cargada correctamente (" 
+        << matrizPuntuacion.size() << " filas):\n";
+
+    for (const vector<int>& fila : matrizPuntuacion) {  // recorre para verificar
+        for (int num : fila) {
+            cout << num << " "; // imprime la matriz para saber que se lee
+        }
+        cout << "\n";
+    }
+    cout << endl;
+
 
 	return 0;
 }
