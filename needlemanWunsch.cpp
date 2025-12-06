@@ -99,9 +99,9 @@ vector<vector<int>> leerCSV(const string& nombre_archivo) {
 // ─────────────| Sobre los archivos |─────────────¬
 
 	// | Corre el bash
-int limpiarArchivos(string nombre_archivo, int limite){
+int limpiarArchivos(string nombre_archivo){
 
-	string run = "bash limpiarArchivos.bash " + nombre_archivo + " " + to_string(limite);
+	string run = "bash limpiarArchivos.bash " + nombre_archivo;
 	int status = system(run.c_str());
 
 	/*  ─────────────────────────────
@@ -130,7 +130,7 @@ string actualizarNombreArchivo(string nombre_archivo) {
 	string nuevo_nombre = nombre_archivo.substr(0, nombre_archivo.size() - 4);
 
 	// Agrega '_CLEAN-SHORT.fna' a la variable
-	return nuevo_nombre + "_CLEAN-SHORT.fna";
+	return "FASTAS/" + nuevo_nombre + "_CLEAN-SHORT.fna";
 }
 
 
@@ -139,11 +139,12 @@ string guardarInfo(string nombre_archivo) {
 	string secuencia;
 	string linea;
 
+
 	ifstream archivo(nombre_archivo);
 
 	// Error de lectura
 	if (!archivo) {
-        cerr << "\n\tNo se pudo abrir el archivo " << nombre_archivo << endl;
+        cerr << "\n!\tNo se pudo abrir el archivo " << nombre_archivo << endl;
         return "Err";
     }
 
@@ -160,7 +161,7 @@ string guardarInfo(string nombre_archivo) {
 
 int main(int argc, char** argv) {
 	
-	// <──| Valores iniciales |──>
+	// <─────────| Valores iniciales |─────────>
 
 	string C1, C2, U; 
 	int V, limite, valor1, valor2; 
@@ -176,7 +177,7 @@ int main(int argc, char** argv) {
 	    ─────────────────────────────  */
 
 
-	// <──| Validación de argumentos de entrada |──>
+	// <─────────| Validación de argumentos de entrada |─────────>
 
 	// | El usuario ingresó menos o más argumentos de los necesarios ➜ sale del programa
 	if (argc < 9 || argc > 9) { 
@@ -222,14 +223,11 @@ int main(int argc, char** argv) {
     }
 
 
-	// <──| Sobre limpiar archivos |──>
-
-	cout << "> Cuál es el máximo de longitud deseado para sus cadenas? : ";
-	limite = controlINT();
+	// <─────────| Sobre limpiar archivos |─────────>
 	
 	// | Se limpian archivos con script bash en caso de que no tengan el formato correspondiente (ATCG)
-	valor1 = limpiarArchivos(C1, limite);
-	valor2 = limpiarArchivos(C2, limite);
+	valor1 = limpiarArchivos(C1);
+	valor2 = limpiarArchivos(C2);
 	
 
 	// | Se realizan los casos dependiendo del valor retornado por limpiarArchivos()
@@ -247,7 +245,7 @@ int main(int argc, char** argv) {
 	}
 
 
-	// <──| Sobre lectura de archivos |──>
+	// <─────────| Sobre lectura de archivos |─────────>
 
 	// | C1 y C2 Pasan de ser nombres de archivos a ser las secuencias leídas de estos archivos
 	C1 = guardarInfo(C1);
@@ -261,7 +259,7 @@ int main(int argc, char** argv) {
     cout << "\nCadena 1: " << C1 << "\nCadena 2: " << C2 << "\n";
 
 
-    // <──| Leer y Verificar CSV |──>
+    // <─────────| Leer y Verificar CSV |─────────>
 
     vector<vector<int>> matrizPuntuacion = leerCSV(U);
 
