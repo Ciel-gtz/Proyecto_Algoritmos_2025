@@ -1,99 +1,9 @@
-#include <vector> 
-#include <fstream>
-#include <iostream>
-#include <string> // Para: to_string()
-#include <limits> // Para: controlINT()
-
+#include <vector> // Para: vector + push_back()
+#include <sstream> // Para: stringstream
+#include <fstream> // Para: ifstream, ofstream
+#include <iostream> // Para: cin, cout, cerr
+#include <string> // Para: to_string(), string, getline()
 using namespace std;
-
-// ─────────────| Controles de entrada |─────────────¬
-
-    // | Verificar int del usuario
-int controlINT() { 
-
-    int valor;
-    while (true){
-
-        cin >> valor;
-        if (!cin || valor <= 0){
-        cout << "!\tSolo se permiten numeros mayores a 0: ";
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        continue;
-
-        } else {
-            return valor;
-        }
-    }
-}
-
-// ─────────────| Lectura de CSV (con salto de encabezados) |─────────────¬
-
-vector<vector<int>> leerCSV(const string& nombre_archivo) {
-    vector<vector<int>> matriz;
-    string linea;
-    bool primeraFila = true;   // ← para saltar la fila de encabezados
-
-    ifstream archivo(nombre_archivo);
-
-    if (!archivo.is_open()) {
-        cerr << "!\tNo se pudo abrir el archivo CSV: " << nombre_archivo << endl;
-        return matriz;
-    }
-    
-    while (getline(archivo, linea)) {
-
-        // Si es la primera fila → se ignora COMPLETAMENTE
-        if (primeraFila) {
-            primeraFila = false;
-            continue;
-        }
-
-        vector<int> fila;
-        string valor;
-
-        bool primeraColumna = true; // ← para saltar la columna de encabezados
-
-        for (char c : linea) {
-
-            if (c == ',') {
-                if (primeraColumna) {
-                    // Saltar la primera columna (encabezado de fila)
-                    primeraColumna = false;
-                    valor.clear();
-                    continue;
-                }
-
-                if (!valor.empty()) {
-                    try {
-                        int numero = stoi(valor);
-                        fila.push_back(numero);
-                    } catch (...) {
-                        // Valor inválido → ignorar
-                    }
-                    valor.clear();
-                }
-            } else {
-                valor.push_back(c);
-            }
-        }
-
-        // Procesar último valor de la fila
-        if (!valor.empty() && !primeraColumna) {
-            try {
-                int numero = stoi(valor);
-                fila.push_back(numero);
-            } catch (...) {
-                // Ignorar si no es válido
-            }
-        }
-
-        matriz.push_back(fila);
-    }
-
-    archivo.close();
-    return matriz;
-}
 
 
 // ─────────────| Sobre los archivos |─────────────¬
@@ -115,7 +25,8 @@ int limpiarArchivos(string nombre_archivo){
 		return 1;
 	} else if (status == 512) { // 512 es equivalente a exit 2 de bash
 		cout << "!\tEl archivo " << nombre_archivo << " ya tiene el formato _CLEAN-SHORT.fna" 
-			 << "\n\tSe utilizará la longitud predeterminada del archivo. Si desea cambiar la longitud, borre del nombre del archivo '_CLEAN-SHORT' y corra este código otra vez." << endl;
+			 << "\n\tSe utilizará la longitud predeterminada del archivo." 
+             << "\n\t!\tSi desea cambiar la longitud: borre del nombre del archivo '_CLEAN-SHORT' y corra este código otra vez.\n" << endl;
 		return 2;
 	}
 
@@ -129,7 +40,7 @@ string actualizarNombreArchivo(string nombre_archivo) {
 	// Remueve '.fna' del nombre de la variable
 	string nuevo_nombre = nombre_archivo.substr(0, nombre_archivo.size() - 4);
 
-	// Agrega '_CLEAN-SHORT.fna' a la variable
+	// Agrega '_CLEAN-SHORT.fna' a la variable + la carpeta donde los archivos limpios se guardan
 	return "FASTAS/" + nuevo_nombre + "_CLEAN-SHORT.fna";
 }
 
@@ -156,6 +67,60 @@ string guardarInfo(string nombre_archivo) {
 	archivo.close();
 	return secuencia;
 }
+
+
+// ─────────────| Lectura de CSV (con salto de encabezados) |─────────────¬
+
+vector<vector<int>> leerCSV(const string& nombre_archivo) {
+    vector<vector<int>> matriz;
+    ifstream archivo(nombre_archivo);
+
+    if (!archivo.is_open()) {
+        cerr << "!\tNo se pudo abrir el archivo CSV: " << nombre_archivo << endl;
+        return matriz;
+    }
+
+    string linea;
+
+    // Saltar la primera fila (A,T,C,G)
+    getline(archivo, linea);
+
+    while (getline(archivo, linea)) {
+        stringstream lineaCSV(linea);
+        string casilla;
+
+        vector<int> fila;
+        int columnaIdx = 0;
+
+        // Leer cada casilla separada por coma
+        while (getline(lineaCSV, casilla, ',')) {
+            if (columnaIdx == 0) {
+                // Saltar la primera columna ➜ ignorar (A,T,C,G)
+                columnaIdx++;
+                continue;
+            }
+
+            try {
+                fila.push_back(stoi(casilla));
+                // Esto porque se leen secuencialmente ➜ se quieren agregar secuencialmente ("de arriba para abajo")
+            } catch (...) {
+                // Captura cualquier excepción de cualquier tipo.
+                // Valor inválido ➜ ignorar
+            }
+
+            columnaIdx++;
+        }
+
+        matriz.push_back(fila);
+    }
+
+    return matriz;
+}
+
+
+// ─────────────| Matriz cosa |─────────────¬
+
+
 
 // ─────────────| Main |─────────────¬
 
@@ -278,10 +243,12 @@ int main(int argc, char** argv) {
         for (int num : fila) {
             cout << "\t|" << num; // imprime la matriz
         }
-        cout << "\n";
-    }
-    cout << endl;
 
+        cout << "\n";
+    } cout << endl;
+
+
+    // <─────────| Matriz??idk |─────────>
 
 	return 0;
 }

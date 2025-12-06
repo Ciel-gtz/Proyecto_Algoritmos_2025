@@ -39,6 +39,7 @@ while true; do
     echo "Error: Debes ingresar un número entero."
 done
 
+
 # Después de las verificaciones, define nombres de archivos de salida
 outfile="${source}_CLEAN"
 limit_applied="${outfile}-SHORT"

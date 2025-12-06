@@ -2,7 +2,7 @@ en la matriz de puntuacion se organiza por relación de purinas y pirimidinas (a
 purina con purina + barato que purina con pirimidina y viceversa (A-G y T-C)
 no sé q valor ponerles aún
 
-https://blast.ncbi.nlm.nih.gov/Blast.cgi?PROGRAM=blastn&PAGE_TYPE=BlastSearch&LINK_LOC=blasthome
+https://blast.ncbi.nlm.nih.gov/Blast.cgi?PROGRAM=blastn&PAGE_TYPE=BlastSearch&LINK_LOC=blasthome   -> no recuerdo pq puse esto
 
 sequences from: 
 https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_000001405.40/
