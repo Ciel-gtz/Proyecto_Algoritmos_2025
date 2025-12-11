@@ -28,8 +28,8 @@ int limpiarArchivos(string nombre_archivo){
     
     else if (status == 512) { // 512 es equivalente a exit 2 de bash
 		cout << "!\tEl archivo " << nombre_archivo << " ya tiene el formato _CLEAN-SHORT.fna" 
-			 << "\n\tSe utilizará la longitud predeterminada del archivo." 
-             << "\n\t!\tSi desea cambiar la longitud: borre del nombre del archivo '_CLEAN-SHORT' y corra este código otra vez.\n" << endl;
+			 << "\n\t│ Se utilizará la longitud predeterminada del archivo." 
+             << "\n!\t│ Si desea cambiar la longitud: borre del nombre del archivo '_CLEAN-SHORT' y corra este código otra vez.\n" << endl;
 		return 2;
 	}
 
@@ -245,13 +245,12 @@ void llenarMatrizNW(const string &C1, const string &C2, vector<vector<int>> &mat
 }
 
 
-
 // | visualización de la matriz NW
 void imprimirMatriz(const vector<vector<int>>& matriz, const string& C1, const string& C2) {    
     // Imprimir encabezado de columnas (Secuencia C1)
     cout << "\t\t ─";
     for (char c1 : C1) {
-        cout << "\t|" << c1;
+        cout << "\t│" << c1;
     }
     cout << "\n";
 
@@ -267,12 +266,16 @@ void imprimirMatriz(const vector<vector<int>>& matriz, const string& C1, const s
         
         // Imprimir valores de la matriz
         for (int j = 0; j < matriz[i].size(); ++j) {
-            cout << "\t|" << matriz[i][j]; 
+            cout << "\t│" << matriz[i][j]; 
         }
         cout << "\n";
     }
     cout << endl;
 }
+
+
+
+// ─────────────| Backtrack |─────────────¬
 
 // pair<C1,C2> contiene 2 valores:  C1 = alineación resultante de C1;   C2 = alineación resultante de C2
 pair<string, string> backtrackNW(const vector<vector<int>>& matrizDir, const string& C1, const string& C2) {
@@ -335,6 +338,51 @@ pair<string, string> backtrackNW(const vector<vector<int>>& matrizDir, const str
 
     return {seq1, seq2};
 }
+
+
+
+// ─────────────| Para mostrar información |─────────────¬
+
+int contarMatches(const string &C1, const string &C2) {
+    int matches = 0;
+
+    for (int i = 0; i < C1.size(); i++) {
+        if (C1[i] == '-' || C2[i] == '-') continue;
+        if (C1[i] == C2[i]) matches++;
+    }
+
+    return matches;
+}
+
+void contarMismatchesGapsPorcentaje(const string &C1, const string &C2, int &mismatches, int &gaps, double &porcentaje) {
+    mismatches = 0;
+    gaps = 0;
+    int comparables = 0;
+
+    for (int i = 0; i < C1.size(); i++) {
+        char c1 = C1[i];
+        char c2 = C2[i];
+
+        // Cuenta gaps
+        if (c1 == '-' || c2 == '-') {
+            gaps++;
+            continue;
+        }
+
+        comparables++;
+
+        // Cuenta missmatches
+        if (c1 != c2)
+            mismatches++;
+    }
+
+    // Calcula el porcentaje de similitud
+    if (comparables > 0)
+        porcentaje = (double)(comparables - mismatches) / comparables * 100.0;
+    else
+        porcentaje = 0.0;
+}
+
 
 
 // ─────────────| Main |─────────────¬
@@ -424,8 +472,8 @@ int main(int argc, char** argv) {
 	C1 = guardarInfo(C1);
 	C2 = guardarInfo(C2);
 	
-    cout << "────────────────────────────────────────────"
-		 << "\nCadena 1: " << C1 << "\nCadena 2: " << C2 << endl;
+    cout << "  ────────────────────¬\n│ Secuencias a alinear:"
+		 << "\n│ Cadena 1: " << C1 << "\n│ Cadena 2: " << C2 << "\n" << endl;
 
 
    // <─────────────| Leer y Verificar CSV |─────────────>
@@ -440,17 +488,17 @@ int main(int argc, char** argv) {
     }
 
     // | Impresión de matrizPuntuacion.csv (usando etiquetasFila para filas)
-    cout << "\n\t<──| Matriz de puntuacion (U) |──>\n\t\t|" ;
+    cout << "\n\t<──| Matriz de puntuacion (U) |──>\n\n\t  ─\t" ;
 
     for (const string& header : encabezados) {
-        cout << header << "\t|";
+        cout << "│" << header << "\t";
     } cout << "\n";
 
     for (int r = 0; r < (int)matrizPuntuacion.size(); ++r) {  
-        cout << "\t| " << ( (r < (int)etiquetasFila.size() && !etiquetasFila[r].empty()) ? etiquetasFila[r] : nucleotidos[r] ); 
+        cout << "\t│ " << ( (r < (int)etiquetasFila.size() && !etiquetasFila[r].empty()) ? etiquetasFila[r] : nucleotidos[r] ); 
 
         for (int c = 0; c < (int)matrizPuntuacion[r].size(); ++c) {
-            cout << "\t|" << matrizPuntuacion[r][c]; 
+            cout << "\t│" << matrizPuntuacion[r][c]; 
         }
 
         cout << "\n";
@@ -472,14 +520,40 @@ int main(int argc, char** argv) {
     // 3. Impresión de la matriz resultante.
 	cout << "\n\t\t   -─────────────| Matriz de Programación Dinámica [NW] |─────────────-\n" << endl;
     imprimirMatriz(matrizNW, C1, C2);
-
     
-    // <─────────| Backtrack |─────────────>
+    // 4. Backtrack
     pair<string, string> resultado = backtrackNW(matrizDir, C1, C2);
 
-    cout << "\nAlineamiento óptimo:\n";
-    cout << "Cadena 1: " << resultado.first  << "\n";
-    cout << "Cadena 2: " << resultado.second << "\n";
+    string C1_alineado = resultado.first;
+    string C2_alineado = resultado.second;
+
+
+    // <─────────| Mostrar información |─────────────>
+
+    // | Cadenas alineadas
+    cout << "\n  ────────────────────¬"
+         << "\n│ Alineamiento óptimo:\n"
+         << "│ Cadena 1: " << C1_alineado << "\n"
+         << "│ Cadena 2: " << C2_alineado << "\n\n"
+         << "  ────────────────────¬" << endl;
+
+    // | Score final del alineamiento
+    int scoreFinal = matrizNW[C2.size()][C1.size()];
+    cout << "│ ➜  Score\t= " << scoreFinal << "\n";
+
+    // | Matches totales en el alineamiento
+    int matches = contarMatches(C1_alineado, C2_alineado);
+    cout << "│ ➜  Matches\t= " << matches << "\n";
+
+    // | Mismatches, Gaps y Porcentaje de similitud
+    int mismatches, gaps;
+    double porcentaje;
+
+    contarMismatchesGapsPorcentaje(C1_alineado, C2_alineado, mismatches, gaps, porcentaje);
+
+    cout << "│ ➜  Mismatches\t= " << mismatches << "\n"
+         << "│ ➜  Gaps\t= " << gaps << "\n"
+         << "│ ➜  Similitud\t= " << porcentaje << "%\n";
 
     return 0;
 }
