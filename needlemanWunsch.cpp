@@ -74,7 +74,7 @@ string guardarInfo(string nombre_archivo) {
 
 // ─────────────| Lectura de CSV (con salto de encabezados) |─────────────¬
 
-vector<vector<int>> leerCSV(const string& nombre_archivo) {
+vector<vector<int>> leerCSV(const string& nombre_archivo, vector<string>& etiquetasFila) {
     vector<vector<int>> matriz;
     ifstream archivo(nombre_archivo);
 
@@ -85,9 +85,13 @@ vector<vector<int>> leerCSV(const string& nombre_archivo) {
 
     string linea;
 
-    // Saltar la primera fila (A,T,C,G)
-    getline(archivo, linea);
+    // Leer la primera fila (encabezados de columnas) y descartarla aquí.
+    if (!getline(archivo, linea)) {
+        cerr << "!\tCSV vacio: " << nombre_archivo << endl;
+        return matriz;
+    }
 
+    // Ahora leer cada fila: la primera celda de cada fila es la etiqueta de la fila (A/T/C/G)
     while (getline(archivo, linea)) {
         stringstream lineaCSV(linea);
         string casilla;
@@ -95,22 +99,21 @@ vector<vector<int>> leerCSV(const string& nombre_archivo) {
         vector<int> fila;
         int columnaIdx = 0;
 
-        // Leer cada casilla separada por coma
-        while (getline(lineaCSV, casilla, ',')) {
-            if (columnaIdx == 0) {
-                // Saltar la primera columna ➜ ignorar (A,T,C,G)
-                columnaIdx++;
-                continue;
-            }
+        // Leer la primera celda (etiqueta de fila)
+        if (!getline(lineaCSV, casilla, ',')) continue;
 
+        // Guardar la etiqueta de fila (sin espacios)
+        string etiqueta = casilla;
+        etiquetasFila.push_back(etiqueta);
+
+        // Leer el resto de casillas separadas por coma (valores numéricos)
+        while (getline(lineaCSV, casilla, ',')) {
             try {
                 fila.push_back(stoi(casilla));
                 // Esto porque se leen secuencialmente ➜ se quieren agregar secuencialmente ("de arriba para abajo")
             } catch (...) {
-                // Captura cualquier excepción de cualquier tipo.
                 // Valor inválido ➜ ignorar
             }
-
             columnaIdx++;
         }
 
@@ -127,7 +130,7 @@ vector<vector<int>> leerCSV(const string& nombre_archivo) {
 vector<string> leerEncabezados(const string &nombreCSV) {
     ifstream file(nombreCSV);
     vector<string> encabezados;
-    string caracter;
+    string linea;
 
     // Error al abrir el archivo CSV
     if (!file.is_open()) {
@@ -136,23 +139,23 @@ vector<string> leerEncabezados(const string &nombreCSV) {
     }
 
     // Leer únicamente la primera línea del CSV (la fila de encabezados)
-    if (!getline(file, caracter)) {
+    if (!getline(file, linea)) {
         // Error al leer la línea
         return encabezados;
     } 
 
     // Procesar la línea como si fuera un archivo con stringstream para usar getline()
-    stringstream ss(caracter);
-    string linea;
+    stringstream ss(linea);
+    string casilla;
 
     // Leer la primera celda (vacía) y descartarla
-    getline(ss, caracter, ',');
+    getline(ss, casilla, ',');
 
     // Leer el resto de celdas A, T, C, G (en cualquier orden en el que estén)
-    while (getline(ss, caracter, ',')) {
+    while (getline(ss, casilla, ',')) {
         // Evitar agregar celdas vacías (ej. si hay comas dobles ",,")
-        if (!caracter.empty()){
-            encabezados.push_back(caracter);
+        if (!casilla.empty()){
+            encabezados.push_back(casilla);
         }
     }
 
@@ -181,53 +184,66 @@ vector<vector<int>> inicializarMatrizNW(int filas, int columnas, int penal) {
 
 
 // | Función de Puntuación (Score) 
-int scoreNW(char c1, char c2, const vector<string> &enc, const vector<vector<int>> &mat) {
+int scoreNW(char filaCaracter, char colCaracter, const vector<string> &etiquetasFila, const vector<string> &etiquetasColumna, const vector<vector<int>> &mat) {
     int i = -1, j = -1;
 
-    // Buscar el índice del nucleótido c1 y c2 en la lista de encabezados.
-    for (int k = 0; k < enc.size(); k++) {
-        if (enc[k].size() == 1) {
-            if (enc[k][0] == c1) i = k;
-            if (enc[k][0] == c2) j = k;
-        }
+    // Buscar el índice del nucleótido en las listas de encabezados
+    for (int k = 0; k < etiquetasFila.size(); k++) {
+        if (etiquetasFila[k].size() == 1 && etiquetasFila[k][0] == filaCaracter) { i = k; break; }
+    }
+    for (int k = 0; k < etiquetasColumna.size(); k++) {
+        if (etiquetasColumna[k].size() == 1 && etiquetasColumna[k][0] == colCaracter) { j = k; break; }
     }
 
-    // Si i o j no se encontraron causará un error de índice.
+    // Si i o j no se encontraron
     if (i == -1 || j == -1) {
-        cerr << "!\tNucleótido no encontrado (" << c1 << ", " << c2 << ")\n";
+        cerr << "!\tNucleotido no encontrado (" << filaCaracter << ", " << colCaracter << ")\n";
         exit(1); // Salir del programa
     }
     
-    return mat[i][j]; // Esto CRASHEA si i o j son -1. Se asume que no lo serán.
+    return mat[i][j];
 }
 
 
-// | Función para Llenar la Matriz NW 
-void llenarMatrizNW(const string &C1, const string &C2, vector<vector<int>> &matrizNW, int V, const vector<string> &encabezados, const vector<vector<int>> &matPunt) {
-    int filas = matrizNW.size();    // tamaño de C2 + 1
-    int columnas = matrizNW[0].size(); // tamaño de C1 + 1
+// | Construye la matriz de puntuación de Needleman–Wunsch y la matriz de direcciones.
+void llenarMatrizNW(const string &C1, const string &C2, vector<vector<int>> &matrizNW, vector<vector<int>> &matrizDir, int V, 
+                    const vector<string> &etiquetasFila, const vector<string> &etiquetasColumna, const vector<vector<int>> &matPunt) {
 
-    // C1: Horizontal (columnas), C2: Vertical (filas)
-    for (int i = 1; i < filas; i++) { // i recorre C2
-        for (int j = 1; j < columnas; j++) { // j recorre C1
+    int filas = matrizNW.size();        // filas = largo de C2 + 1
+    int columnas = matrizNW[0].size();  // columnas = largo de C1 + 1
 
-            // Caso 1: Match/Mismatch (Diagonal)
-            // f(i-1, j-1) + U(C1[j-1], C2[i-1])
-            int diag = matrizNW[i-1][j-1] + scoreNW(C1[j-1], C2[i-1], encabezados, matPunt);
+    // Se excluye fila y columna inicial
+    for (int i = 1; i < filas; i++) {
+        for (int j = 1; j < columnas; j++) {
+        
+           /*  ─────────────────────────────
+            ➜ i avanza sobre C2 (vertical)
+            ➜ j avanza sobre C1 (horizontal)
+            el caracter de la "fila" es C2[i-1]   ;   el de la "columna" es C1[j-1]
+                ─────────────────────────────  */
 
-            // Caso 2: Gap en la secuencia C1 (Movimiento Arriba)
-            // f(i-1, j) + V
-            int up   = matrizNW[i-1][j] + V; 
+            int diagonal = matrizNW[i-1][j-1] + scoreNW(C2[i-1], C1[j-1], etiquetasFila, etiquetasColumna, matPunt);
+            int arriba   = matrizNW[i-1][j] + V; // Inserta gap en C1
+            int izquierda = matrizNW[i][j-1] + V; // Inserta gap en C2
 
-            // Caso 3: Gap en la secuencia C2 (Movimiento Izquierda)
-            // f(i, j-1) + V
-            int left = matrizNW[i][j-1] + V; 
+            // Determinar el valor máximo.
+            int mejorValor = diagonal;
+            if (arriba > mejorValor) mejorValor = arriba;
+            if (izquierda > mejorValor) mejorValor = izquierda;
 
-            // El valor f(i, j) es el máximo de las tres opciones.
-            matrizNW[i][j] = max(diag, max(up, left));
+            matrizNW[i][j] = mejorValor;
+
+            // Guardar de dónde vino el valor.
+            if (mejorValor == arriba)
+                matrizDir[i][j] = 1;      // arriba = 1
+            else if (mejorValor == izquierda)
+                matrizDir[i][j] = 2;      // izquierda = 2
+            else
+                matrizDir[i][j] = 0;      // diagonal = 0
         }
     }
 }
+
 
 
 // | visualización de la matriz NW
@@ -258,12 +274,74 @@ void imprimirMatriz(const vector<vector<int>>& matriz, const string& C1, const s
     cout << endl;
 }
 
+// pair<C1,C2> contiene 2 valores:  C1 = alineación resultante de C1;   C2 = alineación resultante de C2
+pair<string, string> backtrackNW(const vector<vector<int>>& matrizDir, const string& C1, const string& C2) {
+    // Comienza desde la esquina inferior derecha
+    int i = C2.size();  // filas
+    int j = C1.size();  // columnas
+
+    string seq1;   // alineación resultante de C1
+    string seq2;   // alineación resultante de C2
+
+    // Retrocedemos mientras queden caracteres de alguna secuencia
+    while (i > 0 || j > 0) {
+
+        // Caso borde: estamos en la primera columna ➜ sólo podemos subir
+        if (j == 0) {
+            seq1 += '-';
+            seq2 += C2[i - 1];
+            i--;
+            continue;
+        }
+
+        // Caso borde: estamos en la primera fila ➜ sólo podemos ir a la izquierda
+        if (i == 0) {
+            seq1 += C1[j - 1];
+            seq2 += '-';
+            j--;
+            continue;
+        }
+
+        // Dirección codificada en matrizDir[i][j]
+        int dir = matrizDir[i][j];
+
+        // | Diagonal ➜ Se emparejan ambos caracteres
+        if (dir == 0) {
+            seq1 += C1[j - 1];
+            seq2 += C2[i - 1];
+            i--; j--;
+        }
+        // | Arriba ➜ Gap en C1
+        else if (dir == 1) {
+            seq1 += '-';
+            seq2 += C2[i - 1];
+            i--;
+        }
+        // | Izquierda ➜ Gap en C2
+        else if (dir == 2) {
+            seq1 += C1[j - 1];
+            seq2 += '-';
+            j--;
+        }
+        else {
+            cerr << "!\tDirección invalida.\n";
+            exit(1);
+        }
+    }
+
+    // Se construyó al revés ➜ ahora se invierte
+    reverse(seq1.begin(), seq1.end());
+    reverse(seq2.begin(), seq2.end());
+
+    return {seq1, seq2};
+}
+
 
 // ─────────────| Main |─────────────¬
 
 int main(int argc, char** argv) {
 	
-	// <─────────| Valores iniciales |─────────>
+	// <─────────────| Valores iniciales |─────────────>
 
 	string C1, C2, U; 
 	int V, limite, valor1, valor2; 
@@ -279,7 +357,7 @@ int main(int argc, char** argv) {
 	    ─────────────────────────────  */
 
 
-	// <─────────| Validación de argumentos de entrada |─────────>
+	// <─────────────| Validación de argumentos de entrada |─────────────>
 
 	// | El usuario ingresó menos o más argumentos de los necesarios ➜ sale del programa
 	if (argc < 9 || argc > 9) { 
@@ -325,7 +403,7 @@ int main(int argc, char** argv) {
     }
 
 
-	// <─────────| Sobre limpiar archivos |─────────>
+	// <─────────────| Sobre limpiar archivos |─────────────>
 	
 	// | Se limpian archivos con script bash en caso de que no tengan el formato correspondiente (ATCG)
 	valor1 = limpiarArchivos(C1);
@@ -340,7 +418,7 @@ int main(int argc, char** argv) {
 	}
 
 
-	// <─────────| Sobre lectura de archivos |─────────>
+	// <─────────────| Sobre lectura de archivos |─────────────>
 
 	// | C1 y C2 Pasan de ser nombres de archivos a ser las secuencias leídas de estos archivos
 	C1 = guardarInfo(C1);
@@ -350,25 +428,29 @@ int main(int argc, char** argv) {
 		 << "\nCadena 1: " << C1 << "\nCadena 2: " << C2 << endl;
 
 
-   // <─────────| Leer y Verificar CSV |─────────>
+   // <─────────────| Leer y Verificar CSV |─────────────>
 
-    vector<vector<int>> matrizPuntuacion = leerCSV(U);
+    vector<string> etiquetasFila;
+    vector<vector<int>> matrizPuntuacion = leerCSV(U, etiquetasFila);
     vector<string> encabezados = leerEncabezados(U); 
 
-    if (matrizPuntuacion.empty() || encabezados.empty()) {
+    if (matrizPuntuacion.empty() || encabezados.empty() || etiquetasFila.empty()) {
         cerr << "!\tError al cargar la matriz de puntuación o encabezados.\n";
         return 1;
     }
 
-    // | Impresión de matrizPuntuacion.csv
-    cout << "\n\t<──| Matriz de puntuacion (U) |──>\n\t\t|" 
-         << nucleotidos[0] << "\t|" << nucleotidos[1] << "\t|" << nucleotidos[2] << "\t|" << nucleotidos[3] << "\n";
+    // | Impresión de matrizPuntuacion.csv (usando etiquetasFila para filas)
+    cout << "\n\t<──| Matriz de puntuacion (U) |──>\n\t\t|" ;
 
-    for (const vector<int>& fila : matrizPuntuacion) {  
-        cout << "\t| " << nucleotidos[&fila - &matrizPuntuacion[0]]; 
+    for (const string& header : encabezados) {
+        cout << header << "\t|";
+    } cout << "\n";
 
-        for (int num : fila) {
-            cout << "\t|" << num; 
+    for (int r = 0; r < (int)matrizPuntuacion.size(); ++r) {  
+        cout << "\t| " << ( (r < (int)etiquetasFila.size() && !etiquetasFila[r].empty()) ? etiquetasFila[r] : nucleotidos[r] ); 
+
+        for (int c = 0; c < (int)matrizPuntuacion[r].size(); ++c) {
+            cout << "\t|" << matrizPuntuacion[r][c]; 
         }
 
         cout << "\n";
@@ -382,16 +464,22 @@ int main(int argc, char** argv) {
 
     // 1. Inicialización de la matriz (Ceros en M[0][0] y llenado de bordes con penalización).
     vector<vector<int>> matrizNW = inicializarMatrizNW(filas, columnas, V);
+    vector<vector<int>> matrizDir(filas, vector<int>(columnas, -1)); // Matriz para direcciones (backtrack)
 
     // 2. Llenado de la matriz (Programación Dinámica).
-    llenarMatrizNW(C1, C2, matrizNW, V, encabezados, matrizPuntuacion);
+    llenarMatrizNW(C1, C2, matrizNW, matrizDir, V, etiquetasFila, encabezados, matrizPuntuacion);
     
     // 3. Impresión de la matriz resultante.
 	cout << "\n\t\t   -─────────────| Matriz de Programación Dinámica [NW] |─────────────-\n" << endl;
     imprimirMatriz(matrizNW, C1, C2);
 
     
-    // <─────────| Backtrack |─────────>
+    // <─────────| Backtrack |─────────────>
+    pair<string, string> resultado = backtrackNW(matrizDir, C1, C2);
+
+    cout << "\nAlineamiento óptimo:\n";
+    cout << "Cadena 1: " << resultado.first  << "\n";
+    cout << "Cadena 2: " << resultado.second << "\n";
 
     return 0;
 }
