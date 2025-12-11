@@ -23,8 +23,10 @@ int limpiarArchivos(string nombre_archivo){
 
 	if (status == 256) { // 256 es equivalente a exit 1 de bash [256 x exitvalue]
 		cout << "!\tError con el archivo " << nombre_archivo << endl;
-		return 1;
-	} else if (status == 512) { // 512 es equivalente a exit 2 de bash
+		exit(1);
+	} 
+    
+    else if (status == 512) { // 512 es equivalente a exit 2 de bash
 		cout << "!\tEl archivo " << nombre_archivo << " ya tiene el formato _CLEAN-SHORT.fna" 
 			 << "\n\tSe utilizará la longitud predeterminada del archivo." 
              << "\n\t!\tSi desea cambiar la longitud: borre del nombre del archivo '_CLEAN-SHORT' y corra este código otra vez.\n" << endl;
@@ -57,7 +59,7 @@ string guardarInfo(string nombre_archivo) {
 	// Error de lectura
 	if (!archivo) {
         cerr << "\n!\tNo se pudo abrir el archivo " << nombre_archivo << endl;
-        return "Err";
+        exit(1);
     }
 
 	// Obtiene todas las líneas del archivo y las guarda en una sola string
@@ -124,53 +126,39 @@ vector<vector<int>> leerCSV(const string& nombre_archivo) {
 // | Encabezado de fila y de columna para hacer la comparacion entre (A, T, C, G)
 vector<string> leerEncabezados(const string &nombreCSV) {
     ifstream file(nombreCSV);
-    string linea;
-    vector<string> enc;
+    vector<string> encabezados;
+    string caracter;
 
+    // Error al abrir el archivo CSV
     if (!file.is_open()) {
-        cerr << "!\tNo se pudo abrir el archivo de matriz de puntuacion: " << nombreCSV << endl;
-        return enc;
+        cerr << "!\tNo se pudo abrir el archivo: " << nombreCSV << endl;
+        return encabezados;
     }
 
-    // Leer solo la PRIMERA línea del archivo
-    if (getline(file, linea)) {
+    // Leer únicamente la primera línea del CSV (la fila de encabezados)
+    if (!getline(file, caracter)) {
+        // Error al leer la línea
+        return encabezados;
+    } 
 
-        size_t inicio = 0;          // Índice de inicio de la búsqueda
-        size_t fin = 0;             // Índice de la coma encontrada
-        string delimitador = ",";   // La coma como separador
-        bool primeraColumna = true;
+    // Procesar la línea como si fuera un archivo con stringstream para usar getline()
+    stringstream ss(caracter);
+    string linea;
 
-        // Bucle que busca el delimitador (la coma) en la cadena 'linea'
-        while ((fin = linea.find(delimitador, inicio)) != string::npos) {			// esta linea está muy rara (que es npos?)
-            
-            // Extrae la subcadena entre el 'inicio' y el 'fin' (la coma)
-            string valor = linea.substr(inicio, fin - inicio);
+    // Leer la primera celda (vacía) y descartarla
+    getline(ss, caracter, ',');
 
-            // Saltar la primera columna (celda vacía)
-            if (primeraColumna) {
-                primeraColumna = false;
-                // Mueve el inicio a la posición DERECHA de la coma
-                inicio = fin + delimitador.length();
-                continue;
-            }
-
-            // Si el valor no está vacío, lo agrega
-            if (!valor.empty()) {
-                enc.push_back(valor);
-            }
-
-            // Mueve el inicio a la posición DERECHA de la coma para la siguiente búsqueda
-            inicio = fin + delimitador.length();
-        }
-
-        // Manejar el ÚLTIMO token que no tiene coma al final (ej. la G final)
-        if (inicio < linea.length() && !primeraColumna) {
-             string valor = linea.substr(inicio, linea.length() - inicio);
-             if (!valor.empty()) enc.push_back(valor);
+    // Leer el resto de celdas A, T, C, G (en cualquier orden en el que estén)
+    while (getline(ss, caracter, ',')) {
+        // Evitar agregar celdas vacías (ej. si hay comas dobles ",,")
+        if (!caracter.empty()){
+            encabezados.push_back(caracter);
         }
     }
-    return enc;
+
+    return encabezados;
 }
+
 
 
 // ─────────────| Sobre Needleman-Wunsch |─────────────¬
@@ -196,7 +184,7 @@ vector<vector<int>> inicializarMatrizNW(int filas, int columnas, int penal) {
 int scoreNW(char c1, char c2, const vector<string> &enc, const vector<vector<int>> &mat) {
     int i = -1, j = -1;
 
-    // Buscar el índice del nucleótido A y B en la lista de encabezados.
+    // Buscar el índice del nucleótido c1 y c2 en la lista de encabezados.
     for (int k = 0; k < enc.size(); k++) {
         if (enc[k].size() == 1) {
             if (enc[k][0] == c1) i = k;
@@ -204,8 +192,10 @@ int scoreNW(char c1, char c2, const vector<string> &enc, const vector<vector<int
         }
     }
 
-    // Si i o j no se encontraron causará un error de índice. 								aún no hace nada esto*****
+    // Si i o j no se encontraron causará un error de índice.
     if (i == -1 || j == -1) {
+        cerr << "!\tNucleótido no encontrado (" << c1 << ", " << c2 << ")\n";
+        exit(1); // Salir del programa
     }
     
     return mat[i][j]; // Esto CRASHEA si i o j son -1. Se asume que no lo serán.
@@ -341,13 +331,6 @@ int main(int argc, char** argv) {
 	valor1 = limpiarArchivos(C1);
 	valor2 = limpiarArchivos(C2);
 	
-
-	// | Se realizan los casos dependiendo del valor retornado por limpiarArchivos()
-	if (valor1 == 1 || valor2 == 1) {
-		// Hubo algún error al leer los archivos
-		return 1;
-	} 
-	
 	// | Se renombran los archivos si es que fueron limpiados
 	if (valor1 == 0) {
 		C1 = actualizarNombreArchivo(C1);
@@ -362,11 +345,6 @@ int main(int argc, char** argv) {
 	// | C1 y C2 Pasan de ser nombres de archivos a ser las secuencias leídas de estos archivos
 	C1 = guardarInfo(C1);
 	C2 = guardarInfo(C2);
-
-	// | Error al leer los archivos
-	if (C1 == "Err" || C2 == "Err") {
-		return 1;
-	}
 	
     cout << "────────────────────────────────────────────"
 		 << "\nCadena 1: " << C1 << "\nCadena 2: " << C2 << endl;
@@ -396,6 +374,7 @@ int main(int argc, char** argv) {
         cout << "\n";
     } cout << endl;
 
+
     // <─────────| Ejecución del Algoritmo NW |─────────>
 
 	int filas = C2.size() + 1;
@@ -408,12 +387,11 @@ int main(int argc, char** argv) {
     llenarMatrizNW(C1, C2, matrizNW, V, encabezados, matrizPuntuacion);
     
     // 3. Impresión de la matriz resultante.
-    // cout << "\n> Puntaje Máximo de Alineamiento (f[n][m]): " << matrizNW[C2.size()][C1.size()] << endl;		➜ no estoy seguro de esto, no sé su uso
 	cout << "\n\t\t   -─────────────| Matriz de Programación Dinámica [NW] |─────────────-\n" << endl;
     imprimirMatriz(matrizNW, C1, C2);
 
-
-    // NOTA: La función de backtracking debe ser implementada aquí para la reconstrucción del alineamiento.
+    
+    // <─────────| Backtrack |─────────>
 
     return 0;
 }
