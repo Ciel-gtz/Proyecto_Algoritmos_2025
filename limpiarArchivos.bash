@@ -2,7 +2,7 @@
 
 # ─────────────| Sobre la entrada |─────────────¬
 
-# Verificar que se ingresen exactamente 1 argumento
+# Verificar que se ingrese exactamente 1 argumento
 if [ $# -ne 1 ]; then
     echo "Uso: bash $0 NOMBRE_ARCHIVO"
     exit 1
@@ -12,6 +12,8 @@ fi
 source="${1%.fna}"
 limit="$2"
 
+# Mostrar archivo seleccionado
+echo "Archivo seleccionado: '${source}.fna'"
 
 # Verifica si el archivo fuente existe y que se pueda reescribir
 if [[ ! -r "${source}.fna" ]]; then
@@ -29,7 +31,8 @@ fi
 # Verificar que el límite sea un entero
 while true; do
     # Pedir límite al usuario 
-    read -p "Ingresa el límite de caracteres: " limit
+    echo "Ingresa la cantidad de caracteres deseados para su cadena"
+    read -p "Escriba '0' si quiere que se lea todo el archivo: " limit
 
     # Validar entero
     if [[ "$limit" =~ ^[0-9]+$ ]]; then
@@ -59,8 +62,14 @@ tr -cd 'ATCG' < "${outfile}.fna" > temp && mv temp "${outfile}.fna"
 
 # ─────────────| Sobre aplicar 'limit' |─────────────¬
 
-# Se crea una versión acotada a 'limite' caracteres
-head -c "$limit" "${outfile}.fna" > "${limit_applied}.fna"
+if [[ "$limit" -eq 0 ]]; then
+    # No aplicar límite, usar archivo completo
+    cp "${outfile}.fna" "${limit_applied}.fna"
+else
+    # Se crea una versión acotada a 'limite' caracteres
+    head -c "$limit" "${outfile}.fna" > "${limit_applied}.fna"
+fi
+
 
 
 # ─────────────| Sobre la carpeta 'FASTAS' |─────────────¬
@@ -70,5 +79,6 @@ mkdir -p FASTAS
 
 # Mueve el archivo source y el archivo outfile a la carpeta FASTAS
 mv "${limit_applied}.fna"  "${outfile}.fna" FASTAS
+echo ""
 
 # "${source}.fna" se mantiene en el directorio actual

@@ -4,13 +4,29 @@
 #include <iostream> // Para: cin, cout, cerr
 #include <string> // Para: to_string(), string, getline()
 #include <algorithm>  // Para: max, reverse, transform
+#include <limits> // Para: numeric_limits
 
 using namespace std;
+
+// ─────────────| Pedir decisión al usuario |─────────────¬
+
+char userDecision() {
+    char userAnswer;
+    do {
+        cout << "! [s/n] : ";
+        cin >> userAnswer;
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        userAnswer = (char)tolower(userAnswer);
+    } 
+    while( !cin.fail() && userAnswer!='s' && userAnswer!='n' );
+
+    return userAnswer;   
+}
 
 
 // ─────────────| Sobre los archivos |─────────────¬
 
-	// | Corre el bash
+// | Corre el bash
 int limpiarArchivos(string nombre_archivo){
 	string run = "bash limpiarArchivos.bash " + nombre_archivo;
 	int status = system(run.c_str());
@@ -37,8 +53,7 @@ int limpiarArchivos(string nombre_archivo){
 }
 
 
-	// | Actualiza el nombre del archivo en el caso 0 de limpiarArchivos()
-
+// | Actualiza el nombre del archivo en el caso 0 de limpiarArchivos()
 string actualizarNombreArchivo(string nombre_archivo) {
 	// Remueve '.fna' del nombre de la variable
 	string nuevo_nombre = nombre_archivo.substr(0, nombre_archivo.size() - 4);
@@ -48,7 +63,7 @@ string actualizarNombreArchivo(string nombre_archivo) {
 }
 
 
-	// | Guarda la información del archivo en una string
+// | Guarda la información del archivo en una string
 string guardarInfo(string nombre_archivo) {
 	string secuencia;
 	string linea;
@@ -163,7 +178,6 @@ vector<string> leerEncabezados(const string &nombreCSV) {
 }
 
 
-
 // ─────────────| Sobre Needleman-Wunsch |─────────────¬
 
 // | Función para inicializar la matriz Needleman-Wunsch
@@ -274,7 +288,6 @@ void imprimirMatriz(const vector<vector<int>>& matriz, const string& C1, const s
 }
 
 
-
 // ─────────────| Backtrack |─────────────¬
 
 // pair<C1,C2> contiene 2 valores:  C1 = alineación resultante de C1;   C2 = alineación resultante de C2
@@ -340,7 +353,6 @@ pair<string, string> backtrackNW(const vector<vector<int>>& matrizDir, const str
 }
 
 
-
 // ─────────────| Para mostrar información |─────────────¬
 
 int contarMatches(const string &C1, const string &C2) {
@@ -382,7 +394,6 @@ void contarMismatchesGapsPorcentaje(const string &C1, const string &C2, int &mis
     else
         porcentaje = 0.0;
 }
-
 
 
 // ─────────────| Main |─────────────¬
@@ -518,9 +529,12 @@ int main(int argc, char** argv) {
     llenarMatrizNW(C1, C2, matrizNW, matrizDir, V, etiquetasFila, encabezados, matrizPuntuacion);
     
     // 3. Impresión de la matriz resultante.
-	cout << "\n\t\t   -─────────────| Matriz de Programación Dinámica [NW] |─────────────-\n" << endl;
-    imprimirMatriz(matrizNW, C1, C2);
-    
+    cout << "\n> ¿Desea mostrar la matriz de programación dinámica (NW)?: ";
+    if (userDecision() == 's') {
+        cout << "\n\t\t   -─────────────| Matriz de Programación Dinámica [NW] |─────────────-\n" << endl;
+        imprimirMatriz(matrizNW, C1, C2);
+    } 
+
     // 4. Backtrack
     pair<string, string> resultado = backtrackNW(matrizDir, C1, C2);
 
