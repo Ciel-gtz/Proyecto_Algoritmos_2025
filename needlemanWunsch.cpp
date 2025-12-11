@@ -396,6 +396,58 @@ void contarMismatchesGapsPorcentaje(const string &C1, const string &C2, int &mis
 }
 
 
+// ─────────────| Para generar imágen de la matriz [Se necesita tener instalado ImageMagick con Pango] |─────────────¬
+
+// | Guarda la matriz en un archivo txt para luego convertirla en imagen
+void guardarMatrizEnTxt(const vector<vector<int>>& matriz, const string& C1, const string& C2, const string& nombreArchivo) {
+    ofstream out(nombreArchivo);
+    
+    if (!out.is_open()) {
+        cerr << "No se pudo crear archivo: " << nombreArchivo << "\n";
+        return;
+    }
+
+    // Encabezado
+    out << "\t\t ─";
+    for (char c1 : C1) out << "\t│" << c1;
+    out << "\n";
+
+    // Filas
+    for (int i = 0; i < matriz.size(); ++i) {
+
+        if (i == 0) out << "\t─ ";
+        else        out << "\t" << C2[i-1] << "   ➜";
+
+        for (int j = 0; j < matriz[i].size(); ++j) {
+            out << "\t│" << matriz[i][j];
+        }
+
+        out << "\n";
+    }
+}
+
+// | Convierte el txt generado en una imagen PNG
+void convertirTxtAPNG(const string& txt, const string& png) {
+    string bgHex = "#2b213fff"; // Fondo blanco 
+    string textHex = "#e8dceeff"; //Letra negra
+    int padding = 200; // Padding en píxeles
+
+    string cmd =
+        "bash -c \""
+        "convert -background '" + bgHex + "' "
+        "-fill '" + textHex + "' "
+        "-font DejaVu-Sans-Mono -pointsize 14 "
+        "-density 300 "
+        "-bordercolor '" + bgHex + "' "
+        "-border " + to_string(padding) + " " +
+        "pango:\\\"<span font='DejaVu Sans Mono 14'>$(cat " + txt + ")</span>\\\" "
+        + png +
+        "\"";
+
+    system(cmd.c_str());
+}
+
+
 // ─────────────| Main |─────────────¬
 
 int main(int argc, char** argv) {
@@ -534,6 +586,14 @@ int main(int argc, char** argv) {
         cout << "\n\t\t   -─────────────| Matriz de Programación Dinámica [NW] |─────────────-\n" << endl;
         imprimirMatriz(matrizNW, C1, C2);
     } 
+
+    // Guardar siempre la matriz en formato TXT
+    guardarMatrizEnTxt(matrizNW, C1, C2, "matrizNW.txt");
+
+    // Convertir a PNG automáticamente
+    convertirTxtAPNG("matrizNW.txt", "matrizNW.png");
+
+    cout << "\n> Imagen generada: matrizNW.png\n";
 
     // 4. Backtrack
     pair<string, string> resultado = backtrackNW(matrizDir, C1, C2);
