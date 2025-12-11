@@ -203,31 +203,35 @@ int scoreNW(char c1, char c2, const vector<string> &enc, const vector<vector<int
 
 
 // | Función para Llenar la Matriz NW 
-void llenarMatrizNW(const string &C1, const string &C2, vector<vector<int>> &matrizNW, int V, const vector<string> &encabezados, const vector<vector<int>> &matPunt) {
-    int filas = matrizNW.size();    // tamaño de C2 + 1
-    int columnas = matrizNW[0].size(); // tamaño de C1 + 1
+void llenarMatrizNW(
+    const string &C1, const string &C2,
+    vector<vector<int>> &matrizNW,
+    vector<vector<int>> &matrizDir,
+    int V,
+    const vector<string> &encabezados,
+    const vector<vector<int>> &matPunt
+) {
+    int filas = matrizNW.size();
+    int columnas = matrizNW[0].size();
 
-    // C1: Horizontal (columnas), C2: Vertical (filas)
-    for (int i = 1; i < filas; i++) { // i recorre C2
-        for (int j = 1; j < columnas; j++) { // j recorre C1
+    for (int i = 1; i < filas; i++) {
+        for (int j = 1; j < columnas; j++) {
 
-            // Caso 1: Match/Mismatch (Diagonal)
-            // f(i-1, j-1) + U(C1[j-1], C2[i-1])
             int diag = matrizNW[i-1][j-1] + scoreNW(C1[j-1], C2[i-1], encabezados, matPunt);
+            int up   = matrizNW[i-1][j]     + V;
+            int left = matrizNW[i][j-1]     + V;
 
-            // Caso 2: Gap en la secuencia C1 (Movimiento Arriba)
-            // f(i-1, j) + V
-            int up   = matrizNW[i-1][j] + V; 
+            int best = max(diag, max(up, left));
+            matrizNW[i][j] = best;
 
-            // Caso 3: Gap en la secuencia C2 (Movimiento Izquierda)
-            // f(i, j-1) + V
-            int left = matrizNW[i][j-1] + V; 
-
-            // El valor f(i, j) es el máximo de las tres opciones.
-            matrizNW[i][j] = max(diag, max(up, left));
+            // Guarda dirección con prioridad diagonal > arriba > izquierda
+            if (best == diag)      matrizDir[i][j] = 0;
+            else if (best == up)   matrizDir[i][j] = 1;
+            else                   matrizDir[i][j] = 2;
         }
     }
 }
+
 
 
 // | visualización de la matriz NW
@@ -257,6 +261,73 @@ void imprimirMatriz(const vector<vector<int>>& matriz, const string& C1, const s
     }
     cout << endl;
 }
+
+
+
+/// TOO WEIRD BUT WORKS, should be changed tho
+pair<string, string> backtrackNW(const vector<vector<int>>& matrizDir, const string& C1, const string& C2) {
+    int i = C2.size();
+    int j = C1.size();
+
+    string alineada1;
+    string alineada2;
+
+    while (i > 0 || j > 0) {
+
+        // --- Caso borde: primera columna (j == 0) ---
+        if (j == 0) {
+            alineada1 += '-';
+            alineada2 += C2[i - 1];
+            i--;
+            continue;
+        }
+
+        // --- Caso borde: primera fila (i == 0) ---
+        if (i == 0) {
+            alineada1 += C1[j - 1];
+            alineada2 += '-';
+            j--;
+            continue;
+        }
+
+        // Dirección normal desde matrizDir
+        int dir = matrizDir[i][j];
+
+        if (dir == 0) {
+            // Diagonal
+            alineada1 += C1[j - 1];
+            alineada2 += C2[i - 1];
+            i--; j--;
+        }
+        else if (dir == 1) {
+            // Arriba
+            alineada1 += '-';
+            alineada2 += C2[i - 1];
+            i--;
+        }
+        else if (dir == 2) {
+            // Izquierda
+            alineada1 += C1[j - 1];
+            alineada2 += '-';
+            j--;
+        }
+        else {
+            cerr << "Error: direccion invalida en (" << i << ", " << j << ")\n";
+            exit(1);
+        }
+    }
+
+    // El backtracking construye las cadenas al revés
+    reverse(alineada1.begin(), alineada1.end());
+    reverse(alineada2.begin(), alineada2.end());
+
+    return {alineada1, alineada2};
+}
+
+
+
+
+
 
 
 // ─────────────| Main |─────────────¬
@@ -382,9 +453,10 @@ int main(int argc, char** argv) {
 
     // 1. Inicialización de la matriz (Ceros en M[0][0] y llenado de bordes con penalización).
     vector<vector<int>> matrizNW = inicializarMatrizNW(filas, columnas, V);
+    vector<vector<int>> matrizDir(filas, vector<int>(columnas, -1)); // Matriz para direcciones (backtrack)
 
     // 2. Llenado de la matriz (Programación Dinámica).
-    llenarMatrizNW(C1, C2, matrizNW, V, encabezados, matrizPuntuacion);
+    llenarMatrizNW(C1, C2, matrizNW, matrizDir, V, encabezados, matrizPuntuacion);
     
     // 3. Impresión de la matriz resultante.
 	cout << "\n\t\t   -─────────────| Matriz de Programación Dinámica [NW] |─────────────-\n" << endl;
@@ -392,6 +464,14 @@ int main(int argc, char** argv) {
 
     
     // <─────────| Backtrack |─────────>
+    //// CHANGE THIS AUTO I DONT LIKE IT
+    auto resultado = backtrackNW(matrizDir, C1, C2);
+
+
+    cout << "\nAlineamiento óptimo:\n";
+    cout << resultado.first  << "\n";
+    cout << resultado.second << "\n";
+
 
     return 0;
 }
