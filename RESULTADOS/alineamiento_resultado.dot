@@ -1,0 +1,112 @@
+digraph AlignmentResult {
+  rankdir=LR; // Izquierda a Derecha
+  label = "Alineamiento Óptimo Needleman-Wunsch\nPuntaje: 32";
+  labelloc = "t";
+
+  subgraph cluster_C1 {
+    label = "Cadena 1";
+    rank = same;
+    node [shape=box, style=filled, height=0.3, width=0.3, fixedsize=true];
+    C1_0 [label="-", fillcolor=gray, group=g0];
+    C1_1 [label="-", fillcolor=gray, group=g1];
+    C1_0 -> C1_1 [dir=none];
+    C1_2 [label="T", fillcolor=green, group=g2];
+    C1_1 -> C1_2 [dir=none];
+    C1_3 [label="A", fillcolor=green, group=g3];
+    C1_2 -> C1_3 [dir=none];
+    C1_4 [label="A", fillcolor=green, group=g4];
+    C1_3 -> C1_4 [dir=none];
+    C1_5 [label="C", fillcolor=green, group=g5];
+    C1_4 -> C1_5 [dir=none];
+    C1_6 [label="C", fillcolor=green, group=g6];
+    C1_5 -> C1_6 [dir=none];
+    C1_7 [label="C", fillcolor=green, group=g7];
+    C1_6 -> C1_7 [dir=none];
+    C1_8 [label="T", fillcolor=green, group=g8];
+    C1_7 -> C1_8 [dir=none];
+    C1_9 [label="A", fillcolor=green, group=g9];
+    C1_8 -> C1_9 [dir=none];
+    C1_10 [label="A", fillcolor=green, group=g10];
+    C1_9 -> C1_10 [dir=none];
+    C1_11 [label="C", fillcolor=green, group=g11];
+    C1_10 -> C1_11 [dir=none];
+    C1_12 [label="C", fillcolor=green, group=g12];
+    C1_11 -> C1_12 [dir=none];
+    C1_13 [label="C", fillcolor=green, group=g13];
+    C1_12 -> C1_13 [dir=none];
+    C1_14 [label="T", fillcolor=green, group=g14];
+    C1_13 -> C1_14 [dir=none];
+    C1_15 [label="A", fillcolor=green, group=g15];
+    C1_14 -> C1_15 [dir=none];
+    C1_16 [label="A", fillcolor=green, group=g16];
+    C1_15 -> C1_16 [dir=none];
+    C1_17 [label="C", fillcolor=green, group=g17];
+    C1_16 -> C1_17 [dir=none];
+    C1_18 [label="C", fillcolor=green, group=g18];
+    C1_17 -> C1_18 [dir=none];
+    C1_19 [label="C", fillcolor=green, group=g19];
+    C1_18 -> C1_19 [dir=none];
+    C1_20 [label="T", fillcolor=green, group=g20];
+    C1_19 -> C1_20 [dir=none];
+    C1_21 [label="A", fillcolor=green, group=g21];
+    C1_20 -> C1_21 [dir=none];
+    C1_22 [label="-", fillcolor=gray, group=g22];
+    C1_21 -> C1_22 [dir=none];
+    C1_23 [label="-", fillcolor=gray, group=g23];
+    C1_22 -> C1_23 [dir=none];
+  }
+
+  subgraph cluster_C2 {
+    label = "Cadena 2";
+    rank = same;
+    node [shape=box, style=filled, height=0.3, width=0.3, fixedsize=true];
+    C2_0 [label="C", fillcolor=gray, group=g0];
+    C2_1 [label="C", fillcolor=gray, group=g1];
+    C2_0 -> C2_1 [dir=none];
+    C2_2 [label="T", fillcolor=green, group=g2];
+    C2_1 -> C2_2 [dir=none];
+    C2_3 [label="A", fillcolor=green, group=g3];
+    C2_2 -> C2_3 [dir=none];
+    C2_4 [label="A", fillcolor=green, group=g4];
+    C2_3 -> C2_4 [dir=none];
+    C2_5 [label="C", fillcolor=green, group=g5];
+    C2_4 -> C2_5 [dir=none];
+    C2_6 [label="C", fillcolor=green, group=g6];
+    C2_5 -> C2_6 [dir=none];
+    C2_7 [label="C", fillcolor=green, group=g7];
+    C2_6 -> C2_7 [dir=none];
+    C2_8 [label="T", fillcolor=green, group=g8];
+    C2_7 -> C2_8 [dir=none];
+    C2_9 [label="A", fillcolor=green, group=g9];
+    C2_8 -> C2_9 [dir=none];
+    C2_10 [label="A", fillcolor=green, group=g10];
+    C2_9 -> C2_10 [dir=none];
+    C2_11 [label="C", fillcolor=green, group=g11];
+    C2_10 -> C2_11 [dir=none];
+    C2_12 [label="C", fillcolor=green, group=g12];
+    C2_11 -> C2_12 [dir=none];
+    C2_13 [label="C", fillcolor=green, group=g13];
+    C2_12 -> C2_13 [dir=none];
+    C2_14 [label="T", fillcolor=green, group=g14];
+    C2_13 -> C2_14 [dir=none];
+    C2_15 [label="A", fillcolor=green, group=g15];
+    C2_14 -> C2_15 [dir=none];
+    C2_16 [label="A", fillcolor=green, group=g16];
+    C2_15 -> C2_16 [dir=none];
+    C2_17 [label="C", fillcolor=green, group=g17];
+    C2_16 -> C2_17 [dir=none];
+    C2_18 [label="C", fillcolor=green, group=g18];
+    C2_17 -> C2_18 [dir=none];
+    C2_19 [label="C", fillcolor=green, group=g19];
+    C2_18 -> C2_19 [dir=none];
+    C2_20 [label="T", fillcolor=green, group=g20];
+    C2_19 -> C2_20 [dir=none];
+    C2_21 [label="A", fillcolor=green, group=g21];
+    C2_20 -> C2_21 [dir=none];
+    C2_22 [label="A", fillcolor=gray, group=g22];
+    C2_21 -> C2_22 [dir=none];
+    C2_23 [label="C", fillcolor=gray, group=g23];
+    C2_22 -> C2_23 [dir=none];
+  }
+
+}
