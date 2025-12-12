@@ -139,6 +139,6 @@ Un ejemplo directo para correr el programa con lo que ya está en el repositorio
 
 - `userDecision()` viene de combinar los códigos presentes en [esta página](https://stackoverflow.com/questions/43972500/how-to-only-accept-y-or-n-in-users-input-in-c)
 - Para generar la imágen `matrizNW.png` las secuencias debe ser máximo de 54 nucleótidos, igualmente, no dejará que se genere si esto no se cumple.
-- No se realizarán los pasos del bash de limpieza si el archivo seleccionado tiene en el nombre escrito '_CLEAN-SHORT.fn'.
+- No se realizarán los pasos del bash de limpieza si el archivo seleccionado tiene en el nombre escrito '_CLEAN-SHORT.fna'.
 - Se utiliza SVG para generar la imágen de backtrack ya que graphviz se tarda demasiado en realizar este trabajo.
 
