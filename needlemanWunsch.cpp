@@ -5,6 +5,7 @@
 #include <string> // Para: to_string(), string, getline()
 #include <algorithm>  // Para: max, reverse, transform
 #include <limits> // Para: numeric_limits
+#include <cstdlib>    // Para: system -> generar png
 
 using namespace std;
 
@@ -44,8 +45,8 @@ int limpiarArchivos(string nombre_archivo){
     
     else if (status == 512) { // 512 es equivalente a exit 2 de bash
 		cout << "!\tEl archivo " << nombre_archivo << " ya tiene el formato _CLEAN-SHORT.fna" 
-			 << "\n\t│ Se utilizará la longitud predeterminada del archivo." 
-             << "\n!\t│ Si desea cambiar la longitud: borre del nombre del archivo '_CLEAN-SHORT' y corra este código otra vez.\n" << endl;
+			 << "\n\t Se utilizará la longitud predeterminada del archivo." 
+             << "\n!\t  Si desea cambiar la longitud: borre del nombre del archivo '_CLEAN-SHORT' y corra este código otra vez.\n" << endl;
 		return 2;
 	}
 
@@ -408,15 +409,15 @@ void guardarMatrizEnTxt(const vector<vector<int>>& matriz, const string& C1, con
     }
 
     // Encabezado
-    out << "\t\t ─";
+    out << "\t ─";
     for (char c1 : C1) out << "\t│" << c1;
     out << "\n";
 
     // Filas
     for (int i = 0; i < matriz.size(); ++i) {
 
-        if (i == 0) out << "\t─ ";
-        else        out << "\t" << C2[i-1] << "   ➜";
+        if (i == 0) out << " ";
+        else        out << "" << C2[i-1] << "   ➜";
 
         for (int j = 0; j < matriz[i].size(); ++j) {
             out << "\t│" << matriz[i][j];
@@ -426,7 +427,7 @@ void guardarMatrizEnTxt(const vector<vector<int>>& matriz, const string& C1, con
     }
 }
 
-// | Convierte el txt generado en una imagen PNG
+// | Convierte el txt generado en una imagen PNG [MAX = 54]
 void convertirTxtAPNG(const string& txt, const string& png) {
     string bgHex = "#2b213fff"; // Fondo blanco 
     string textHex = "#e8dceeff"; //Letra negra
@@ -444,7 +445,112 @@ void convertirTxtAPNG(const string& txt, const string& png) {
         + png +
         "\"";
 
-    system(cmd.c_str());
+        // Silenciar TODA la salida del comando
+        cmd += " > /dev/null 2>&1";
+        
+    int status = system(cmd.c_str());
+    if (status != 0) {
+        cerr << "!\tError al generar imagen de la matriz ; " << status 
+             << "\n\t Revisa que ImageMagick + Pango esten instalados.\n";
+    } else {
+        cout << "\n> Imagen generada: matrizNW.png\n";
+    }
+}
+
+
+
+
+
+
+
+// | Genera el código DOT y ejecuta 'dot' para generar el PNG
+void generarGraphviz(const string& seq1, const string& seq2, int score, const string& nombreArchivo) {
+    
+    ofstream dotFile(nombreArchivo);
+    if (!dotFile.is_open()) {
+        cerr << "!\tError: No se pudo crear el archivo DOT: " << nombreArchivo << endl;
+        return;
+    }
+    
+    dotFile << "digraph AlignmentResult {\n";
+    dotFile << "  rankdir=LR; // Izquierda a Derecha\n"; 
+    dotFile << "  label = \"Alineamiento Óptimo Needleman-Wunsch\\nPuntaje: " << score << "\";\n";
+    dotFile << "  labelloc = \"t\";\n\n";
+
+    // Definir subgrafo para la secuencia 1 (C1)
+    dotFile << "  subgraph cluster_C1 {\n";
+    dotFile << "    label = \"Cadena 1\";\n";
+    dotFile << "    rank = same;\n";
+    dotFile << "    node [shape=box, style=filled, height=0.3, width=0.3, fixedsize=true];\n";
+
+    // Nodos para C1 y enlaces secuenciales
+    for (size_t k = 0; k < seq1.length(); ++k) {
+        string nodeName = "C1_" + to_string(k);
+        string color;
+        
+        if (seq1[k] == '-' || seq2[k] == '-') {
+            color = "gray"; // Gap
+        } else if (seq1[k] == seq2[k]) {
+            color = "green"; // Match
+        } else {
+            color = "red"; // Mismatch
+        }
+        
+        dotFile << "    " << nodeName << " [label=\"" << seq1[k] << "\", fillcolor=" << color << ", group=g" << k << "];\n";
+        if (k > 0) {
+            dotFile << "    C1_" << to_string(k-1) << " -> " << nodeName << " [dir=none];\n";
+        }
+    }
+    dotFile << "  }\n\n";
+
+    // Definir subgrafo para la secuencia 2 (C2)
+    dotFile << "  subgraph cluster_C2 {\n";
+    dotFile << "    label = \"Cadena 2\";\n";
+    dotFile << "    rank = same;\n";
+    dotFile << "    node [shape=box, style=filled, height=0.3, width=0.3, fixedsize=true];\n";
+    
+    // Nodos para C2 y enlaces secuenciales
+    for (size_t k = 0; k < seq2.length(); ++k) {
+        string nodeName = "C2_" + to_string(k);
+        string color;
+
+        if (seq1[k] == '-' || seq2[k] == '-') {
+            color = "gray"; // Gap
+        } else if (seq1[k] == seq2[k]) {
+            color = "green"; // Match
+        } else {
+            color = "red"; // Mismatch
+        }
+
+        dotFile << "    " << nodeName << " [label=\"" << seq2[k] << "\", fillcolor=" << color << ", group=g" << k << "];\n";
+        if (k > 0) {
+            dotFile << "    C2_" << to_string(k-1) << " -> " << nodeName << " [dir=none];\n";
+        }
+    }
+    dotFile << "  }\n\n";
+    
+    dotFile << "}";
+    dotFile.close();
+    
+    string outputPNG = "alineamiento_resultado.png";
+    string command = "dot -Tpng " + nombreArchivo + " -o " + outputPNG;
+    
+    // Ejecutar el comando para crear el PNG
+    int status = system(command.c_str());
+    
+    // Notificar al usuario
+    cout << "\n" << "────────────────────────────────────────────" << "\n";
+    cout << "  VISUALIZACIÓN GENERADA AUTOMÁTICAMENTE" << "\n";
+    cout << "────────────────────────────────────────────" << "\n";
+    cout << "  Archivo DOT generado: '" << nombreArchivo << "'.\n";
+    
+    if (status == 0) {
+        cout << "  Archivo PNG generado: '" << outputPNG << "'.\n";
+    } else {
+        cerr << "  Error al generar el PNG. Asegúrese de que Graphviz esté instalado.\n";
+    }
+    cout << "  Colores: Match (verde), Mismatch (rojo) o Gap (gris).\n";
+    cout << "────────────────────────────────────────────" << "\n";
 }
 
 
@@ -593,8 +699,6 @@ int main(int argc, char** argv) {
     // Convertir a PNG automáticamente
     convertirTxtAPNG("matrizNW.txt", "matrizNW.png");
 
-    cout << "\n> Imagen generada: matrizNW.png\n";
-
     // 4. Backtrack
     pair<string, string> resultado = backtrackNW(matrizDir, C1, C2);
 
@@ -628,6 +732,9 @@ int main(int argc, char** argv) {
     cout << "│ ➜  Mismatches\t= " << mismatches << "\n"
          << "│ ➜  Gaps\t= " << gaps << "\n"
          << "│ ➜  Similitud\t= " << porcentaje << "%\n";
+
+    // Llamada a la función que ahora genera el DOT y el PNG
+    generarGraphviz(resultado.first, resultado.second, scoreFinal, "alineamiento_resultado.dot");
 
     return 0;
 }
