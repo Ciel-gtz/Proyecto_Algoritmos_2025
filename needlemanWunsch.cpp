@@ -291,6 +291,65 @@ void imprimirMatriz(const vector<vector<int>>& matriz, const string& C1, const s
 
 // ─────────────| Backtrack |─────────────¬
 
+// | Genera el archivo DOT y para generar el PNG de la matriz NW con backtrack
+void generarBacktrackGraphviz(const vector<vector<int>>& matrizNW, const vector<vector<int>>& matrizDir, const string& nombreArchivo) {
+
+    ofstream dot(nombreArchivo);
+    if (!dot.is_open()) return;
+
+    int filas = matrizNW.size();
+    int cols = matrizNW[0].size();
+
+    dot << "digraph G {\n";
+    dot << "  layout=neato;\n";
+    dot << "  overlap=false;\n";
+    dot << "  splines=true;\n";
+    dot << "  bgcolor=\"#2b213fff\";\n";
+    dot << "  edge [dir=forward, arrowsize=0.8, penwidth=2];\n";
+    dot << "  node [shape=box, width=0.4, height=0.4, fontsize=12, fixedsize=true, "
+           "fontcolor=\"#e8dceeff\", "
+           "color=\"#e8dceeff\", "
+           "fillcolor=\"#392b55ff\", "
+           "style=filled];\n";
+
+    // Nodos
+    for (int i = 0; i < filas; i++) {
+        for (int j = 0; j < cols; j++) {
+            float x = j * 1.2;
+            float y = -i * 1.2;
+            dot << "  n" << i << "_" << j 
+                << " [label=\"" << matrizNW[i][j]
+                << "\", pos=\"" << x << "," << y << "!\"];\n";
+        }
+    }
+
+    // Flechas
+    for (int i = 1; i < filas; i++) {
+        for (int j = 1; j < cols; j++) {
+            int d = matrizDir[i][j];
+            string from = "n" + to_string(i) + "_" + to_string(j);
+
+            if (d == 0)
+                dot << "  " << from << " -> n" << (i-1) << "_" << (j-1)
+                    << " [color=\"#7b80ffff\"];\n";
+
+            if (d == 1)
+                dot << "  " << from << " -> n" << (i-1) << "_" << j
+                    << " [color=\"#f39465ff\"];\n";
+
+            if (d == 2)
+                dot << "  " << from << " -> n" << i << "_" << (j-1)
+                    << " [color=\"#88f979ff\"];\n";
+        }
+    }
+
+    dot << "}\n";
+    dot.close();
+
+    system(("neato -Tpng " + nombreArchivo + " -o backtrack.png").c_str());
+}
+
+
 // pair<C1,C2> contiene 2 valores:  C1 = alineación resultante de C1;   C2 = alineación resultante de C2
 pair<string, string> backtrackNW(const vector<vector<int>>& matrizDir, const string& C1, const string& C2) {
     // Comienza desde la esquina inferior derecha
@@ -429,8 +488,8 @@ void guardarMatrizEnTxt(const vector<vector<int>>& matriz, const string& C1, con
 
 // | Convierte el txt generado en una imagen PNG [MAX = 54]
 void convertirTxtAPNG(const string& txt, const string& png) {
-    string bgHex = "#2b213fff"; // Fondo blanco 
-    string textHex = "#e8dceeff"; //Letra negra
+    string bgHex = "#2b213fff"; // Fondo 
+    string textHex = "#e8dceeff"; //Letra
     int padding = 200; // Padding en píxeles
 
     string cmd =
@@ -450,7 +509,7 @@ void convertirTxtAPNG(const string& txt, const string& png) {
         
     int status = system(cmd.c_str());
     if (status != 0) {
-        cerr << "!\tError al generar imagen de la matriz ; " << status 
+        cerr << "!\tError al generar imagen de la matriz ; Nucleotidos max para generar la imagen = 54"
              << "\n\t Revisa que ImageMagick + Pango esten instalados.\n";
     } else {
         cout << "\n> Imagen generada: matrizNW.png\n";
@@ -704,6 +763,13 @@ int main(int argc, char** argv) {
 
 
     // <─────────| Mostrar información |─────────────>
+
+    // | Generar gráfico de backtrack
+    cout << "\n> ¿Desea generar la matriz de backtrack?:\n!\tEste proceso podría tardar:  ";
+    if (userDecision() == 's') {
+        generarBacktrackGraphviz(matrizNW, matrizDir, "backtrack.dot");
+    } 
+    
 
     // | Cadenas alineadas
     cout << "\n  ────────────────────¬"

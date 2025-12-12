@@ -1,6 +1,6 @@
 digraph AlignmentResult {
   rankdir=LR; // Izquierda a Derecha
-  label = "Alineamiento Óptimo Needleman-Wunsch\nPuntaje: 52";
+  label = "Alineamiento Óptimo Needleman-Wunsch\nPuntaje: 8";
   labelloc = "t";
 
   subgraph cluster_C1 {
@@ -26,54 +26,10 @@ digraph AlignmentResult {
     C1_7 -> C1_8 [dir=none];
     C1_9 [label="A", fillcolor=green, group=g9];
     C1_8 -> C1_9 [dir=none];
-    C1_10 [label="A", fillcolor=green, group=g10];
+    C1_10 [label="A", fillcolor=gray, group=g10];
     C1_9 -> C1_10 [dir=none];
-    C1_11 [label="C", fillcolor=green, group=g11];
+    C1_11 [label="C", fillcolor=gray, group=g11];
     C1_10 -> C1_11 [dir=none];
-    C1_12 [label="C", fillcolor=green, group=g12];
-    C1_11 -> C1_12 [dir=none];
-    C1_13 [label="C", fillcolor=green, group=g13];
-    C1_12 -> C1_13 [dir=none];
-    C1_14 [label="T", fillcolor=green, group=g14];
-    C1_13 -> C1_14 [dir=none];
-    C1_15 [label="A", fillcolor=green, group=g15];
-    C1_14 -> C1_15 [dir=none];
-    C1_16 [label="A", fillcolor=green, group=g16];
-    C1_15 -> C1_16 [dir=none];
-    C1_17 [label="C", fillcolor=green, group=g17];
-    C1_16 -> C1_17 [dir=none];
-    C1_18 [label="C", fillcolor=green, group=g18];
-    C1_17 -> C1_18 [dir=none];
-    C1_19 [label="C", fillcolor=green, group=g19];
-    C1_18 -> C1_19 [dir=none];
-    C1_20 [label="T", fillcolor=green, group=g20];
-    C1_19 -> C1_20 [dir=none];
-    C1_21 [label="A", fillcolor=green, group=g21];
-    C1_20 -> C1_21 [dir=none];
-    C1_22 [label="A", fillcolor=green, group=g22];
-    C1_21 -> C1_22 [dir=none];
-    C1_23 [label="C", fillcolor=green, group=g23];
-    C1_22 -> C1_23 [dir=none];
-    C1_24 [label="C", fillcolor=green, group=g24];
-    C1_23 -> C1_24 [dir=none];
-    C1_25 [label="C", fillcolor=green, group=g25];
-    C1_24 -> C1_25 [dir=none];
-    C1_26 [label="T", fillcolor=green, group=g26];
-    C1_25 -> C1_26 [dir=none];
-    C1_27 [label="A", fillcolor=green, group=g27];
-    C1_26 -> C1_27 [dir=none];
-    C1_28 [label="A", fillcolor=green, group=g28];
-    C1_27 -> C1_28 [dir=none];
-    C1_29 [label="C", fillcolor=green, group=g29];
-    C1_28 -> C1_29 [dir=none];
-    C1_30 [label="C", fillcolor=green, group=g30];
-    C1_29 -> C1_30 [dir=none];
-    C1_31 [label="C", fillcolor=green, group=g31];
-    C1_30 -> C1_31 [dir=none];
-    C1_32 [label="-", fillcolor=gray, group=g32];
-    C1_31 -> C1_32 [dir=none];
-    C1_33 [label="-", fillcolor=gray, group=g33];
-    C1_32 -> C1_33 [dir=none];
   }
 
   subgraph cluster_C2 {
@@ -99,54 +55,10 @@ digraph AlignmentResult {
     C2_7 -> C2_8 [dir=none];
     C2_9 [label="A", fillcolor=green, group=g9];
     C2_8 -> C2_9 [dir=none];
-    C2_10 [label="A", fillcolor=green, group=g10];
+    C2_10 [label="-", fillcolor=gray, group=g10];
     C2_9 -> C2_10 [dir=none];
-    C2_11 [label="C", fillcolor=green, group=g11];
+    C2_11 [label="-", fillcolor=gray, group=g11];
     C2_10 -> C2_11 [dir=none];
-    C2_12 [label="C", fillcolor=green, group=g12];
-    C2_11 -> C2_12 [dir=none];
-    C2_13 [label="C", fillcolor=green, group=g13];
-    C2_12 -> C2_13 [dir=none];
-    C2_14 [label="T", fillcolor=green, group=g14];
-    C2_13 -> C2_14 [dir=none];
-    C2_15 [label="A", fillcolor=green, group=g15];
-    C2_14 -> C2_15 [dir=none];
-    C2_16 [label="A", fillcolor=green, group=g16];
-    C2_15 -> C2_16 [dir=none];
-    C2_17 [label="C", fillcolor=green, group=g17];
-    C2_16 -> C2_17 [dir=none];
-    C2_18 [label="C", fillcolor=green, group=g18];
-    C2_17 -> C2_18 [dir=none];
-    C2_19 [label="C", fillcolor=green, group=g19];
-    C2_18 -> C2_19 [dir=none];
-    C2_20 [label="T", fillcolor=green, group=g20];
-    C2_19 -> C2_20 [dir=none];
-    C2_21 [label="A", fillcolor=green, group=g21];
-    C2_20 -> C2_21 [dir=none];
-    C2_22 [label="A", fillcolor=green, group=g22];
-    C2_21 -> C2_22 [dir=none];
-    C2_23 [label="C", fillcolor=green, group=g23];
-    C2_22 -> C2_23 [dir=none];
-    C2_24 [label="C", fillcolor=green, group=g24];
-    C2_23 -> C2_24 [dir=none];
-    C2_25 [label="C", fillcolor=green, group=g25];
-    C2_24 -> C2_25 [dir=none];
-    C2_26 [label="T", fillcolor=green, group=g26];
-    C2_25 -> C2_26 [dir=none];
-    C2_27 [label="A", fillcolor=green, group=g27];
-    C2_26 -> C2_27 [dir=none];
-    C2_28 [label="A", fillcolor=green, group=g28];
-    C2_27 -> C2_28 [dir=none];
-    C2_29 [label="C", fillcolor=green, group=g29];
-    C2_28 -> C2_29 [dir=none];
-    C2_30 [label="C", fillcolor=green, group=g30];
-    C2_29 -> C2_30 [dir=none];
-    C2_31 [label="C", fillcolor=green, group=g31];
-    C2_30 -> C2_31 [dir=none];
-    C2_32 [label="C", fillcolor=gray, group=g32];
-    C2_31 -> C2_32 [dir=none];
-    C2_33 [label="T", fillcolor=gray, group=g33];
-    C2_32 -> C2_33 [dir=none];
   }
 
 }
