@@ -7,10 +7,6 @@
 #include <limits> // Para: numeric_limits
 #include <cstdlib>    // Para: system -> generar png
 
-#include <fstream>
-#include <vector>
-#include <string>
-
 using namespace std;
 
 // ─────────────| Pedir decisión al usuario |─────────────¬
@@ -364,7 +360,7 @@ void generarBacktrackSVG(const vector<vector<int>>& matrizNW, const vector<vecto
 
         svg << "<line x1='" << x1 << "' y1='" << y1
             << "' x2='" << x2 << "' y2='" << y2
-            << "' stroke='#ff3e29a3' stroke-width='4' "
+            << "' stroke='#55c6ffc6' stroke-width='4' "
             << "stroke-linecap='round'/>\n";
     }
 
@@ -440,45 +436,38 @@ pair<string, string> backtrackNW(const vector<vector<int>>& matrizDir, const str
 
 // ─────────────| Para mostrar información |─────────────¬
 
-int contarMatches(const string &C1, const string &C2) {
-    int matches = 0;
-
-    for (int i = 0; i < C1.size(); i++) {
-        if (C1[i] == '-' || C2[i] == '-') continue;
-        if (C1[i] == C2[i]) matches++;
-    }
-
-    return matches;
-}
-
-void contarMismatchesGapsyPorcentaje(const string &C1, const string &C2, int &mismatches, int &gaps, double &porcentaje) {
+void analizarAlineamiento(const string &C1, const string &C2, int &matches, int &mismatches, int &gaps, double &porcentaje) 
+{
+    matches = 0;
     mismatches = 0;
     gaps = 0;
     int comparables = 0;
 
+    // Recorre ambas cadenas alineadas
     for (int i = 0; i < C1.size(); i++) {
-        char c1 = C1[i];
-        char c2 = C2[i];
+        char a = C1[i];
+        char b = C2[i];
 
         // Cuenta gaps
-        if (c1 == '-' || c2 == '-') {
+        if (a == '-' || b == '-') {
             gaps++;
             continue;
         }
 
         comparables++;
 
-        // Cuenta missmatches
-        if (c1 != c2)
-            mismatches++;
+        // Cuenta matches y mismatches
+        if (a == b) matches++;
+        else mismatches++;
     }
 
-    // Calcula el porcentaje de similitud
+    // Calcula el porcentaje de matches sobre los comparables
     if (comparables > 0)
-        porcentaje = (double)(comparables - mismatches) / comparables * 100.0;
+        porcentaje = (double)matches / comparables * 100.0;
     else
         porcentaje = 0.0;
 }
+
 
 
 // ─────────────| Para generar imágen de la matriz [Se necesita tener instalado ImageMagick con Pango] |─────────────¬
@@ -648,7 +637,7 @@ int main(int argc, char** argv) {
 	// <─────────────| Valores iniciales |─────────────>
 
 	string C1, C2, U; 
-	int V, limite, valor1, valor2; 
+	int V, valor1, valor2; 
     string nucleotidos[4] = {"A", "T", "C", "G"};
 
 	/*  ─────────────────────────────
@@ -656,7 +645,6 @@ int main(int argc, char** argv) {
 	C2 = Secuencia vertical | fna
 	U  = Matriz de puntuación | csv
 	V  = Valor de penalización por gap
-	limite = Longitud máxima de las cadenas
 	valor1, valor2 = Valor temporal para validaciones
 	    ─────────────────────────────  */
 
@@ -810,17 +798,14 @@ int main(int argc, char** argv) {
     int scoreFinal = matrizNW[C2.size()][C1.size()];
     cout << "│ ➜  Score\t= " << scoreFinal << "\n";
 
-    // | Matches totales en el alineamiento
-    int matches = contarMatches(C1_alineado, C2_alineado);
-    cout << "│ ➜  Matches\t= " << matches << "\n";
-
-    // | Mismatches, Gaps y Porcentaje de similitud
-    int mismatches, gaps;
+    // | Matches, mismatches, Gaps y Porcentaje de similitud
+    int matches, mismatches, gaps;
     double porcentaje;
 
-    contarMismatchesGapsyPorcentaje(C1_alineado, C2_alineado, mismatches, gaps, porcentaje);
+    analizarAlineamiento(C1_alineado, C2_alineado, matches, mismatches, gaps, porcentaje);
 
-    cout << "│ ➜  Mismatches\t= " << mismatches << "\n"
+    cout << "│ ➜  Matches\t= " << matches << "\n"
+         << "│ ➜  Mismatches\t= " << mismatches << "\n"
          << "│ ➜  Gaps\t= " << gaps << "\n"
          << "│ ➜  Similitud\t= " << porcentaje << "%\n";
 
