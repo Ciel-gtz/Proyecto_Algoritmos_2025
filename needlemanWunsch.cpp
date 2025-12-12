@@ -9,6 +9,8 @@
 
 using namespace std;
 
+
+
 // ─────────────| Pedir decisión al usuario |─────────────¬
 
 char userDecision() {
@@ -23,6 +25,7 @@ char userDecision() {
 
     return userAnswer;   
 }
+
 
 
 // ─────────────| Sobre los archivos |─────────────¬
@@ -88,6 +91,7 @@ string guardarInfo(string nombre_archivo) {
 }
 
 
+
 // ─────────────| Lectura de CSV (con salto de encabezados) |─────────────¬
 
 vector<vector<int>> leerCSV(const string& nombre_archivo, vector<string>& etiquetasFila) {
@@ -140,6 +144,7 @@ vector<vector<int>> leerCSV(const string& nombre_archivo, vector<string>& etique
 }
 
 
+
 // ─────────────| Función para leer encabezados desde el CSV |─────────────¬
 
 // | Encabezado de fila y de columna para hacer la comparacion entre (A, T, C, G)
@@ -177,6 +182,7 @@ vector<string> leerEncabezados(const string &nombreCSV) {
 
     return encabezados;
 }
+
 
 
 // ─────────────| Sobre Needleman-Wunsch |─────────────¬
@@ -289,10 +295,12 @@ void imprimirMatriz(const vector<vector<int>>& matriz, const string& C1, const s
 }
 
 
+
 // ─────────────| Backtrack |─────────────¬
 
 // | Se genera un archivo SVG con la ruta del backtrack
 void generarBacktrackSVG(const vector<vector<int>>& matrizNW, const vector<vector<int>>& matrizDir,const string& nombreArchivoSVG){
+    // Calcula dimensiones del SVG según cantidad de filas/columnas y tamaño de celda.
     int filas = matrizNW.size();
     int cols = matrizNW[0].size();
 
@@ -301,25 +309,29 @@ void generarBacktrackSVG(const vector<vector<int>>& matrizNW, const vector<vecto
     int width = cols * cell + 20;
     int height = filas * cell + 20;
 
+    // Stream de salida para generar el SVG; si falla, se aborta.
     ofstream svg(nombreArchivoSVG);
     if (!svg.is_open()) return;
 
-    svg << "<svg xmlns='http://www.w3.org/2000/svg' "
+    // Configura el lienzo SVG y dibuja un fondo sólido.
+    svg << "<svg xmlns='http://www.w3.org/2000/svg' " // Sin esto parser no sabría que las etiquetas <svg>, <rect>, <line>, etc. pertenecen al lenguaje SVG.
         << "width='" << width << "' height='" << height << "' "
         << "viewBox='0 0 " << width << " " << height << "'>\n";
 
     svg << "<rect width='100%' height='100%' fill='#2b213fff'/>\n";
 
-    // Dibujar celdas y valores
+    // Recorre la matriz y dibuja cada celda del grid junto a su valor numérico.
     for (int i = 0; i < filas; i++) {
         for (int j = 0; j < cols; j++) {
             int x = j * cell + 10;
             int y = i * cell + 10;
 
+            // Dibuja una celda del grid con color de fondo y borde.
             svg << "<rect x='" << x << "' y='" << y
                 << "' width='" << cell << "' height='" << cell
                 << "' fill='#392b55ff' stroke='#e8dceeff' />\n";
 
+            // Coloca el valor correspondiente en el centro de la celda.
             svg << "<text x='" << (x + cell/2)
                 << "' y='" << (y + cell/2 + 5)
                 << "' fill='#e8dceeff' font-size='14' text-anchor='middle'>"
@@ -329,26 +341,30 @@ void generarBacktrackSVG(const vector<vector<int>>& matrizNW, const vector<vecto
     }
 
     // 1. generar la ruta del backtrack
+        // Inicia el backtracking desde la esquina inferior derecha (celda final).
     vector<pair<int,int>> ruta;  
     int i = filas - 1;
     int j = cols - 1;
 
+    // Reconstruye el camino siguiendo la matriz de direcciones hasta llegar al origen.
     while (i > 0 || j > 0) {
         ruta.push_back({i,j});
 
         if (j == 0) { i--; continue; }
         if (i == 0) { j--; continue; }
 
+        // Interpreta la dirección codificada: diagonal, arriba o izquierda.
         int d = matrizDir[i][j];
 
-        if (d == 0) { i--; j--; }
-        else if (d == 1) { i--; }
-        else if (d == 2) { j--; }
+        if (d == 0) { i--; j--; } // diagonal
+        else if (d == 1) { i--; } // arriba
+        else if (d == 2) { j--; } // izquierda
     }
     ruta.push_back({0,0}); // incluir la celda final
 
 
     // 2. Dibujar la línea principal
+        // Conecta cada par consecutivo de celdas de la ruta con un segmento de línea.
     for (int k = 0; k < ruta.size() - 1; k++) {
         auto [i1, j1] = ruta[k];
         auto [i2, j2] = ruta[k+1];
@@ -358,12 +374,14 @@ void generarBacktrackSVG(const vector<vector<int>>& matrizNW, const vector<vecto
         int x2 = j2 * cell + 10 + cell/2;
         int y2 = i2 * cell + 10 + cell/2;
 
+        // Representa visualmente el camino óptimo sobre la matriz.
         svg << "<line x1='" << x1 << "' y1='" << y1
             << "' x2='" << x2 << "' y2='" << y2
             << "' stroke='#55c6ffc6' stroke-width='4' "
             << "stroke-linecap='round'/>\n";
     }
 
+    // 3. Finaliza y escribe el archivo SVG generado.
     svg << "</svg>";
 
     cout << "\n| Se ha generado: " << nombreArchivoSVG << "\n\n";
@@ -434,6 +452,7 @@ pair<string, string> backtrackNW(const vector<vector<int>>& matrizDir, const str
 }
 
 
+
 // ─────────────| Para mostrar información |─────────────¬
 
 void analizarAlineamiento(const string &C1, const string &C2, int &matches, int &mismatches, int &gaps, double &porcentaje) 
@@ -476,30 +495,36 @@ void analizarAlineamiento(const string &C1, const string &C2, int &matches, int 
 void guardarMatrizEnTxt(const vector<vector<int>>& matriz, const string& C1, const string& C2, const string& nombreArchivo) {
     ofstream out(nombreArchivo);
     
+    // Verifica que el archivo se abrió correctamente para escritura
     if (!out.is_open()) {
         cerr << "No se pudo crear archivo: " << nombreArchivo << "\n";
         return;
     }
 
-    // Encabezado
+    // Escribe el encabezado horizontal: primero una tabulación y un separador,
+    // luego imprime cada carácter de C1 como etiquetas de columnas.
     out << "\t ─";
     for (char c1 : C1) out << "\t│" << c1;
     out << "\n";
 
-    // Filas
+    // Recorre cada fila de la matriz de puntajes NW
     for (int i = 0; i < matriz.size(); ++i) {
 
+        // Si es la primera fila, no imprime letra; si no, usa C2[i-1] para etiquetar la fila
         if (i == 0) out << " ";
         else        out << "" << C2[i-1] << "   ➜";
 
+        // Imprime cada valor de la fila con un separador tipo tabla
         for (int j = 0; j < matriz[i].size(); ++j) {
             out << "\t│" << matriz[i][j];
         }
 
         out << "\n";
     }
+    // 'out' es el medio por el cual se escribe información hacia el archivo
     out.close();
 
+    // Comprueba que no hubo fallos durante la escritura
     if (!out) {
         cerr << "Error al escribir en el archivo: " << nombreArchivo << "\n";
     } else {
@@ -507,12 +532,14 @@ void guardarMatrizEnTxt(const vector<vector<int>>& matriz, const string& C1, con
     }
 }
 
-// | Convierte el txt generado en una imagen PNG [MAX = 54]
-void convertirTxtAPNG(const string& txt, const string& png) {
-    string bgHex = "#2b213fff"; // Fondo 
-    string textHex = "#e8dceeff"; //Letra
-    int padding = 200; // Padding en píxeles
 
+// | Convierte el .txt generado en una imagen PNG usando ImageMagick + Pango
+void convertirTxtAPNG(const string& txt, const string& png) {
+    string bgHex = "#2b213fff";        // Color de fondo RGBA
+    string textHex = "#e8dceeff";      // Color del texto RGBA
+    int padding = 200;                   // Padding adicional alrededor del texto
+
+    // Construye un comando Bash que usa 'convert' con backend Pango para renderizar texto
     string cmd =
         "bash -c \""
         "convert -background '" + bgHex + "' "
@@ -521,14 +548,18 @@ void convertirTxtAPNG(const string& txt, const string& png) {
         "-density 300 "
         "-bordercolor '" + bgHex + "' "
         "-border " + to_string(padding) + " " +
+
+        // Inserta el contenido del TXT en una etiqueta <span> Pango para preservar alineación monoespaciada
         "pango:\\\"<span font='DejaVu Sans Mono 14'>$(cat " + txt + ")</span>\\\" "
         + png +
         "\"";
 
-        // Silenciar la salida del comando
-        cmd += " > /dev/null 2>&1";
+    // Redirige toda la salida estándar y de error a /dev/null para evitar mostrar mensajes en consola
+    cmd += " > /dev/null 2>&1";
         
     int status = system(cmd.c_str());
+
+    // Verifica si el comando terminó con error (status != 0)
     if (status != 0) {
         cerr << "!\tError al generar imagen de la matriz NW."
              << "\n\t Revisa que ImageMagick + Pango esten instalados.\n";
@@ -536,6 +567,7 @@ void convertirTxtAPNG(const string& txt, const string& png) {
         cout << "\n│ Se ha generado: matrizNW.png\n\n";
     }
 }
+
 
 
 // ─────────────| Graphviz |─────────────¬
@@ -630,6 +662,7 @@ void generarGraphviz(const string& seq1, const string& seq2, int score, const st
 }
 
 
+
 // ─────────────| Main |─────────────¬
 
 int main(int argc, char** argv) {
@@ -715,6 +748,7 @@ int main(int argc, char** argv) {
 	// | C1 y C2 Pasan de ser nombres de archivos a ser las secuencias leídas de estos archivos
 	C1 = guardarInfo(C1);
 	C2 = guardarInfo(C2);
+
 
    // <─────────────| Leer y Verificar CSV |─────────────>
 
@@ -809,6 +843,8 @@ int main(int argc, char** argv) {
          << "│ ➜  Gaps\t= " << gaps << "\n"
          << "│ ➜  Similitud\t= " << porcentaje << "%\n";
 
+         
+    // <─────────| Generar gráficos |─────────────>
 
          // | Generar gráfico de backtrack
     cout << "\n> ¿Desea generar la matriz de backtrack?: ";
@@ -818,6 +854,8 @@ int main(int argc, char** argv) {
     
     // | Llamada a la función que ahora genera el DOT y el PNG [GRAPHVIZ]
     generarGraphviz(C1_alineado, C2_alineado, scoreFinal, "alineamiento_resultado.dot");
+
+    system("mkdir -p RESULTADOS && mv *.png *.svg *.txt *.dot RESULTADOS/ 2>/dev/null");
 
     return 0;
 }
