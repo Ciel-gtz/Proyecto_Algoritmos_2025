@@ -367,7 +367,7 @@ int contarMatches(const string &C1, const string &C2) {
     return matches;
 }
 
-void contarMismatchesGapsPorcentaje(const string &C1, const string &C2, int &mismatches, int &gaps, double &porcentaje) {
+void contarMismatchesGapsyPorcentaje(const string &C1, const string &C2, int &mismatches, int &gaps, double &porcentaje) {
     mismatches = 0;
     gaps = 0;
     int comparables = 0;
@@ -458,10 +458,7 @@ void convertirTxtAPNG(const string& txt, const string& png) {
 }
 
 
-
-
-
-
+// ─────────────| Graphviz |─────────────¬
 
 // | Genera el código DOT y ejecuta 'dot' para generar el PNG
 void generarGraphviz(const string& seq1, const string& seq2, int score, const string& nombreArchivo) {
@@ -727,14 +724,14 @@ int main(int argc, char** argv) {
     int mismatches, gaps;
     double porcentaje;
 
-    contarMismatchesGapsPorcentaje(C1_alineado, C2_alineado, mismatches, gaps, porcentaje);
+    contarMismatchesGapsyPorcentaje(C1_alineado, C2_alineado, mismatches, gaps, porcentaje);
 
     cout << "│ ➜  Mismatches\t= " << mismatches << "\n"
          << "│ ➜  Gaps\t= " << gaps << "\n"
          << "│ ➜  Similitud\t= " << porcentaje << "%\n";
 
-    // Llamada a la función que ahora genera el DOT y el PNG
-    generarGraphviz(resultado.first, resultado.second, scoreFinal, "alineamiento_resultado.dot");
+    // | Llamada a la función que ahora genera el DOT y el PNG [GRAPHVIZ]
+    generarGraphviz(C1_alineado, C2_alineado, scoreFinal, "alineamiento_resultado.dot");
 
     return 0;
 }
