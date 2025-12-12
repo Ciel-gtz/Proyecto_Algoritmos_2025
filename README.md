@@ -142,3 +142,6 @@ Un ejemplo directo para correr el programa con lo que ya está en el repositorio
 - No se realizarán los pasos del bash de limpieza si el archivo seleccionado tiene en el nombre escrito '_CLEAN-SHORT.fna'.
 - Se utiliza SVG para generar la imágen de backtrack ya que graphviz se tarda demasiado en realizar este trabajo.
 
+- Las secuencias de referencia vienen de los links: 
+    - [`HUMAN.fna`](https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_000001405.40/)
+    - [`RAT.fna`](https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_036323735.1/)
