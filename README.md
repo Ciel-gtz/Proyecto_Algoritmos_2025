@@ -1,15 +1,22 @@
-# Implementación del Algoritmo Needleman-Wunsch
+<div align="center">
+<h1>Implementación del Algoritmo Needleman-Wunsch 📈</h1>
+</div>
 
-## Autor
+**Nombres:** Ciel Pérez, Elia Ulloa <br>
+**Asignatura:** Algoritmos y Estructura de Datos <br>
+**Carrera:** Ingeniería Civil en Bioinformática <br>
 
-**Nombres:** Ciel Pérez, Elia Ulloa
-**Asignatura:** Algoritmos y Estructura de Datos
-**Carrera:** Ingeniería Civil en Bioinformática
-**Universidad de Talca - Facultad de Ingeniería**
+<div align="center">
+<strong>🎓Universidad de Talca - Facultad de Ingeniería🎓</strong>
+</div>
 
 ---
 
-## Descripción del Proyecto
+<br>
+
+<div align="center">
+<h2>Descripción del Proyecto</h2>
+</div>
 
 Este proyecto implementa el **Algoritmo de Needleman-Wunsch** en C++ para realizar el **alineamiento global** óptimo entre dos secuencias biológicas (ADN).
 
@@ -19,34 +26,59 @@ El alfabeto utilizado es $A = \{^{\prime}A^{\prime}, ^{\prime}G^{\prime}, ^{\pri
 
 ---
 
-### Requisitos
+### 🔹 Requisitos
 
-* **Compilador C++:** Se requiere un compilador compatible con C++ (como `g++`).
-* **Graphviz:** El software `dot` debe estar instalado y en el PATH del sistema para generar automáticamente el diagrama de alineamiento PNG.
+- Se requiere un **Compilador C++** compatible (como `g++`).
+- **Graphviz** para generar el `.png` del alineamiento junto a su respectivo archivo `.dot`.
+- [Opcional] ImageMagick + Pango para guardar la matriz de programación dinámica de NW (con un máximo de 54 nucleótidos).
+- `limpiarArchivos.bash` debe estar en la misma carpeta que el ejecutable `needlemanWunsch` para funcionar.
+- Se necesitan 2 secuencias (C1 y C2) y la matriz `matrizPuntuacion.csv`.
 
-### Estructura de Archivos
+### 🔹 Compilación
+El programa requiere **cuatro parámetros de entrada**. Para compilar el programa se utiliza:
+```
+./needlemanWunsch -C1 SECUENCIA1.fna -C2 SECUENCIA2.fna -U matrizPuntuacion.csv -V VALORNEGATIVO
+```
 
-📂 [Proyecto_Algoritmos_2025]
- ┣ README.md
- ┣ needlmanWunsch.cpp  # Código fuente principal
- ┣ limpiarArchivos.bash # Script para preprocesar archivos FASTA
- ┣ 📂 FASTAS/           # Archivos de secuencias de entrada (.fna)
- ┗ 📂 bin/              # (Directorio de salida para ejecutables)
+`-C1 SECUENCIA1.fna` = Secuencia horizontal <br>
+`-C2 SECUENCIA2.fna` = Secuencia vertical <br>
+`-U matrizPuntuacion.csv` = Matriz de puntuación <br>
+`-V VALORNEGATIVO`  = Valor de penalización por gap <br>
 
-### Ejecución del Programa
-
-El programa requiere **cuatro parámetros de entrada**: las dos secuencias, la matriz de puntuación U, y el valor de penalización V.
-
-#### Sintaxis de Ejecución bash
-```bash
-./programa -C1 [archivo_C1].fna -C2 [archivo_C2].fna -U [matriz_U].csv -V [valor_V]
-
-Ejemplo de comado:
-
-g++ needlemanWunsch.cpp -o needlemanWunsch 
+Un ejemplo directo para correr el programa con lo que ya está en el repositorio es:
+```
 ./needlemanWunsch -C1 HUMAN.fna -C2 RAT.fna -U matrizPuntuacion.csv -V -2
+```
 
 ---
+
+<br>
+
+<div align="left">
+<h3>Estructura de Archivos</h3>
+</div>
+
+📂 [Proyecto_Algoritmos_2025] <br>
+ ┣ `README.md` <br>
+ ┣ `needlemanWunsch.cpp` ----> Código fuente principal <br>
+ ┣ `needlemanWunsch` --------> Ejecutable <br>
+ ┣ `limpiarArchivos.bash` ---> Script para limpiar archivos FASTA (mantiene 'ATCG'). Resultados en carpeta FASTAS <br>
+ ┣ `matrizPuntuacion.csv` ---> Puntuación de missmatch y gap <br>
+ ┗ 📂 `FASTAS/`  Archivos de secuencias de entrada (.fna) creadas por el bash <br>
+
+<br>
+
+---
+
+<div align="center">
+<h2>Lógica del Algoritmo Needleman-Wunsch</h2>
+</div>
+
+
+
+CONTINUELATER
+---
+
 #### Lógica del Algoritmo Needleman-Wunsch
 
 El algoritmo se basa en el llenado de una matriz de Programación Dinámica f(i,j).
