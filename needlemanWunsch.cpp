@@ -7,6 +7,10 @@
 #include <limits> // Para: numeric_limits
 #include <cstdlib>    // Para: system -> generar png
 
+#include <fstream>
+#include <vector>
+#include <string>
+
 using namespace std;
 
 // ─────────────| Pedir decisión al usuario |─────────────¬
@@ -291,62 +295,83 @@ void imprimirMatriz(const vector<vector<int>>& matriz, const string& C1, const s
 
 // ─────────────| Backtrack |─────────────¬
 
-// | Genera el archivo DOT y para generar el PNG de la matriz NW con backtrack
-void generarBacktrackGraphviz(const vector<vector<int>>& matrizNW, const vector<vector<int>>& matrizDir, const string& nombreArchivo) {
-
-    ofstream dot(nombreArchivo);
-    if (!dot.is_open()) return;
-
+// | Se genera un archivo SVG con la ruta del backtrack
+void generarBacktrackSVG(const vector<vector<int>>& matrizNW, const vector<vector<int>>& matrizDir,const string& nombreArchivoSVG){
     int filas = matrizNW.size();
     int cols = matrizNW[0].size();
 
-    dot << "digraph G {\n";
-    dot << "  layout=neato;\n";
-    dot << "  overlap=false;\n";
-    dot << "  splines=true;\n";
-    dot << "  bgcolor=\"#2b213fff\";\n";
-    dot << "  edge [dir=forward, arrowsize=0.8, penwidth=2];\n";
-    dot << "  node [shape=box, width=0.4, height=0.4, fontsize=12, fixedsize=true, "
-           "fontcolor=\"#e8dceeff\", "
-           "color=\"#e8dceeff\", "
-           "fillcolor=\"#392b55ff\", "
-           "style=filled];\n";
+    const int cell = 40;
 
-    // Nodos
+    int width = cols * cell + 20;
+    int height = filas * cell + 20;
+
+    ofstream svg(nombreArchivoSVG);
+    if (!svg.is_open()) return;
+
+    svg << "<svg xmlns='http://www.w3.org/2000/svg' "
+        << "width='" << width << "' height='" << height << "' "
+        << "viewBox='0 0 " << width << " " << height << "'>\n";
+
+    svg << "<rect width='100%' height='100%' fill='#2b213fff'/>\n";
+
+    // Dibujar celdas y valores
     for (int i = 0; i < filas; i++) {
         for (int j = 0; j < cols; j++) {
-            float x = j * 1.2;
-            float y = -i * 1.2;
-            dot << "  n" << i << "_" << j 
-                << " [label=\"" << matrizNW[i][j]
-                << "\", pos=\"" << x << "," << y << "!\"];\n";
+            int x = j * cell + 10;
+            int y = i * cell + 10;
+
+            svg << "<rect x='" << x << "' y='" << y
+                << "' width='" << cell << "' height='" << cell
+                << "' fill='#392b55ff' stroke='#e8dceeff' />\n";
+
+            svg << "<text x='" << (x + cell/2)
+                << "' y='" << (y + cell/2 + 5)
+                << "' fill='#e8dceeff' font-size='14' text-anchor='middle'>"
+                << matrizNW[i][j]
+                << "</text>\n";
         }
     }
 
-    // Flechas
-    for (int i = 1; i < filas; i++) {
-        for (int j = 1; j < cols; j++) {
-            int d = matrizDir[i][j];
-            string from = "n" + to_string(i) + "_" + to_string(j);
+    // 1. generar la ruta del backtrack
+    vector<pair<int,int>> ruta;  
+    int i = filas - 1;
+    int j = cols - 1;
 
-            if (d == 0)
-                dot << "  " << from << " -> n" << (i-1) << "_" << (j-1)
-                    << " [color=\"#7b80ffff\"];\n";
+    while (i > 0 || j > 0) {
+        ruta.push_back({i,j});
 
-            if (d == 1)
-                dot << "  " << from << " -> n" << (i-1) << "_" << j
-                    << " [color=\"#f39465ff\"];\n";
+        if (j == 0) { i--; continue; }
+        if (i == 0) { j--; continue; }
 
-            if (d == 2)
-                dot << "  " << from << " -> n" << i << "_" << (j-1)
-                    << " [color=\"#88f979ff\"];\n";
-        }
+        int d = matrizDir[i][j];
+
+        if (d == 0) { i--; j--; }
+        else if (d == 1) { i--; }
+        else if (d == 2) { j--; }
+    }
+    ruta.push_back({0,0}); // incluir la celda final
+
+
+    // 2. Dibujar la línea principal
+    for (int k = 0; k < ruta.size() - 1; k++) {
+        auto [i1, j1] = ruta[k];
+        auto [i2, j2] = ruta[k+1];
+
+        int x1 = j1 * cell + 10 + cell/2;
+        int y1 = i1 * cell + 10 + cell/2;
+        int x2 = j2 * cell + 10 + cell/2;
+        int y2 = i2 * cell + 10 + cell/2;
+
+        svg << "<line x1='" << x1 << "' y1='" << y1
+            << "' x2='" << x2 << "' y2='" << y2
+            << "' stroke='#ff3e29a3' stroke-width='4' "
+            << "stroke-linecap='round'/>\n";
     }
 
-    dot << "}\n";
-    dot.close();
+    svg << "</svg>";
 
-    system(("neato -Tpng " + nombreArchivo + " -o backtrack.png").c_str());
+    cout << "\n| Se ha generado: " << nombreArchivoSVG << "\n\n";
+    svg.close();
 }
 
 
@@ -484,6 +509,13 @@ void guardarMatrizEnTxt(const vector<vector<int>>& matriz, const string& C1, con
 
         out << "\n";
     }
+    out.close();
+
+    if (!out) {
+        cerr << "Error al escribir en el archivo: " << nombreArchivo << "\n";
+    } else {
+        cout << "\n│ Se ha generado: matrizNW.txt";
+    }
 }
 
 // | Convierte el txt generado en una imagen PNG [MAX = 54]
@@ -504,15 +536,15 @@ void convertirTxtAPNG(const string& txt, const string& png) {
         + png +
         "\"";
 
-        // Silenciar TODA la salida del comando
+        // Silenciar la salida del comando
         cmd += " > /dev/null 2>&1";
         
     int status = system(cmd.c_str());
     if (status != 0) {
-        cerr << "!\tError al generar imagen de la matriz ; Nucleotidos max para generar la imagen = 54"
+        cerr << "!\tError al generar imagen de la matriz NW."
              << "\n\t Revisa que ImageMagick + Pango esten instalados.\n";
     } else {
-        cout << "\n> Imagen generada: matrizNW.png\n";
+        cout << "\n│ Se ha generado: matrizNW.png\n\n";
     }
 }
 
@@ -595,9 +627,8 @@ void generarGraphviz(const string& seq1, const string& seq2, int score, const st
     int status = system(command.c_str());
     
     // Notificar al usuario
-    cout << "\n" << "────────────────────────────────────────────" << "\n";
-    cout << "  VISUALIZACIÓN GENERADA AUTOMÁTICAMENTE" << "\n";
-    cout << "────────────────────────────────────────────" << "\n";
+    cout << "\n" << "  ─────────────────────────────────────────¬" << "\n";
+    cout << "+  Visualizacion generada automaticamente" << "\n";
     cout << "  Archivo DOT generado: '" << nombreArchivo << "'.\n";
     
     if (status == 0) {
@@ -605,8 +636,8 @@ void generarGraphviz(const string& seq1, const string& seq2, int score, const st
     } else {
         cerr << "  Error al generar el PNG. Asegúrese de que Graphviz esté instalado.\n";
     }
-    cout << "  Colores: Match (verde), Mismatch (rojo) o Gap (gris).\n";
-    cout << "────────────────────────────────────────────" << "\n";
+    cout << "  !\tColores: Match (verde), Mismatch (rojo) o Gap (gris).\n";
+    cout << "  ────────────────────────────────────────" << "\n";
 }
 
 
@@ -696,10 +727,6 @@ int main(int argc, char** argv) {
 	// | C1 y C2 Pasan de ser nombres de archivos a ser las secuencias leídas de estos archivos
 	C1 = guardarInfo(C1);
 	C2 = guardarInfo(C2);
-	
-    cout << "  ────────────────────¬\n│ Secuencias a alinear:"
-		 << "\n│ Cadena 1: " << C1 << "\n│ Cadena 2: " << C2 << "\n" << endl;
-
 
    // <─────────────| Leer y Verificar CSV |─────────────>
 
@@ -743,17 +770,20 @@ int main(int argc, char** argv) {
     llenarMatrizNW(C1, C2, matrizNW, matrizDir, V, etiquetasFila, encabezados, matrizPuntuacion);
     
     // 3. Impresión de la matriz resultante.
-    cout << "\n> ¿Desea mostrar la matriz de programación dinámica (NW)?: ";
-    if (userDecision() == 's') {
-        cout << "\n\t\t   -─────────────| Matriz de Programación Dinámica [NW] |─────────────-\n" << endl;
-        imprimirMatriz(matrizNW, C1, C2);
-    } 
+    cout << "\n\t\t   -─────────────| Matriz de Programación Dinámica [NW] |─────────────-\n" << endl;
+    imprimirMatriz(matrizNW, C1, C2);
 
-    // Guardar siempre la matriz en formato TXT
-    guardarMatrizEnTxt(matrizNW, C1, C2, "matrizNW.txt");
+    // Guardar la matriz en formato TXT
+    if (C1.size() <= 54 && C2.size() <= 54) {
+        cout << "\n> ¿Desea Guardar esta matriz?: ";
+        if (userDecision() == 's') {
 
-    // Convertir a PNG automáticamente
-    convertirTxtAPNG("matrizNW.txt", "matrizNW.png");
+            guardarMatrizEnTxt(matrizNW, C1, C2, "matrizNW.txt");    
+
+            // Convertir a PNG automáticamente
+            convertirTxtAPNG("matrizNW.txt", "matrizNW.png");
+        } 
+    }
 
     // 4. Backtrack
     pair<string, string> resultado = backtrackNW(matrizDir, C1, C2);
@@ -764,12 +794,9 @@ int main(int argc, char** argv) {
 
     // <─────────| Mostrar información |─────────────>
 
-    // | Generar gráfico de backtrack
-    cout << "\n> ¿Desea generar la matriz de backtrack?:\n!\tEste proceso podría tardar:  ";
-    if (userDecision() == 's') {
-        generarBacktrackGraphviz(matrizNW, matrizDir, "backtrack.dot");
-    } 
-    
+    cout << "  ────────────────────¬\n│ Secuencias originales:"
+		 << "\n│ Cadena 1: " << C1 << "\n│ Cadena 2: " << C2 << endl;
+
 
     // | Cadenas alineadas
     cout << "\n  ────────────────────¬"
@@ -777,6 +804,7 @@ int main(int argc, char** argv) {
          << "│ Cadena 1: " << C1_alineado << "\n"
          << "│ Cadena 2: " << C2_alineado << "\n\n"
          << "  ────────────────────¬" << endl;
+
 
     // | Score final del alineamiento
     int scoreFinal = matrizNW[C2.size()][C1.size()];
@@ -796,6 +824,13 @@ int main(int argc, char** argv) {
          << "│ ➜  Gaps\t= " << gaps << "\n"
          << "│ ➜  Similitud\t= " << porcentaje << "%\n";
 
+
+         // | Generar gráfico de backtrack
+    cout << "\n> ¿Desea generar la matriz de backtrack?: ";
+    if (userDecision() == 's') {
+        generarBacktrackSVG(matrizNW, matrizDir, "backtrack_resultado.svg");
+    } 
+    
     // | Llamada a la función que ahora genera el DOT y el PNG [GRAPHVIZ]
     generarGraphviz(C1_alineado, C2_alineado, scoreFinal, "alineamiento_resultado.dot");
 
