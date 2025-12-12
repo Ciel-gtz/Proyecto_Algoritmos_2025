@@ -10,3 +10,5 @@ g++ needlemanWunsch.cpp -o needlemanWunsch && ./needlemanWunsch -C1 HUMAN.fna -C
 `userDecision()` viene de combinar los códigos presentes en [esta página](https://stackoverflow.com/questions/43972500/how-to-only-accept-y-or-n-in-users-input-in-c),
 
 para generar la imagen se necesita Imagemagick con pango, como instalarlo:
+
+el max de nucleotidos para la imagen es de 54, si se ponen más no lo genera
