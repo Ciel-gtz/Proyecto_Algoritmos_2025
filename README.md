@@ -31,6 +31,9 @@ El alfabeto utilizado es $A = \{^{\prime}A^{\prime}, ^{\prime}G^{\prime}, ^{\pri
 - Se requiere un **Compilador C++** compatible (como `g++`).
 - **Graphviz** para generar el `.png` del alineamiento junto a su respectivo archivo `.dot`.
 - [Opcional] ImageMagick + Pango para guardar la matriz de programación dinámica de NW (con un máximo de 54 nucleótidos).
+  ```
+  sudo apt-get install graphviz imagemagick pango
+  ```
 - `limpiarArchivos.bash` debe estar en la misma carpeta que el ejecutable `needlemanWunsch` para funcionar.
 - Se necesitan 2 secuencias (C1 y C2) y la matriz `matrizPuntuacion.csv`.
 
@@ -55,7 +58,7 @@ Un ejemplo directo para correr el programa con lo que ya está en el repositorio
 <br>
 
 <div align="left">
-<h3>Estructura de Archivos</h3>
+<h3>🔷 Estructura de Archivos</h3>
 </div>
 
 📂 [Proyecto_Algoritmos_2025] <br>
@@ -70,65 +73,72 @@ Un ejemplo directo para correr el programa con lo que ya está en el repositorio
 
 ---
 
-<div align="center">
-<h2>Lógica del Algoritmo Needleman-Wunsch</h2>
+<div align="left">
+<h3>🔷 Flujo del programa</h3>
 </div>
 
+1. **Limpieza y validación de FASTA**  
+   El script `limpiarArchivos.bash` garantiza que las secuencias contengan solo nucleótidos válidos (A, T, C, G).  
+   Si una secuencia no cumple el formato, el bash genera una versión corregida terminada en `_CLEAN-SHORT.fna`.
 
+2. **Carga de la matriz de puntuación desde el CSV**  
+   Se leen los encabezados (A, T, C, G) y luego se construye una matriz U(c,d) donde cada par de nucleótidos entrega un puntaje.  
+   Esta matriz define **matches/mismatches** durante el alineamiento.
 
-CONTINUELATER
+3. **Inicialización de la matriz de Programación Dinámica**  
+   Se crea una matriz `f(i,j)` de tamaño `(len(C2)+1) x (len(C1)+1)`  
+   Las primeras fila/columna representan alinear una secuencia con *solo gaps*, usando el valor de penalización `V`.  
+   - `f(i,0) = i * V`  
+   - `f(0,j) = j * V`
+
+4. **Llenado de la matriz NW (Programación Dinámica)**  
+   Cada celda f(i,j) se calcula como el máximo entre tres opciones:
+   f(i-1,j-1) + U(C2[i-1], C1[j-1]) ← Diagonal (Match / Mismatch)
+   f(i-1,j) + V ← Gap en C1
+   f(i,j-1) + V ← Gap en C2
+   
+   Además se guarda en `matrizDir[i][j]` la dirección que produjo ese máximo:
+   - `0` = diagonal  
+   - `1` = arriba  
+   - `2` = izquierda
+
+5. **Backtracking desde f(n,m)**  
+   Con `matrizDir` se reconstruye el alineamiento óptimo, moviéndose:
+   
+   - Diagonal → empareja ambos caracteres  
+   - Arriba → gap en Cadena 1  
+   - Izquierda → gap en Cadena 2  
+   
+   Este proceso recorre el **camino óptimo** y genera C1_alineado y C2_alineado.
+
+6. **Estadísticas del alineamiento**  
+   Se calculan:
+   - Matches  
+   - Mismatches  
+   - Gaps  
+   - Porcentaje de similitud  
+   
+   Todo basado en las dos secuencias alineadas ya reconstruidas.
+
+7. **Generación de visualizaciones**  
+   El programa ofrece tres salidas opcionales:
+   - `matrizNW.png` → Renderizado de la matriz de programación dinámica (requiere ImageMagick + Pango).  
+   - `backtrack.svg` → Visualización completa de la matriz NW con flechas de backtracking.  
+   - `alineamiento_resultado.png` → Gráfico del alineamiento (Graphviz), coloreando  
+     - verde (match)  
+     - rojo (mismatch)  
+     - gris (gap)
+
+<br>
+
 ---
 
-#### Lógica del Algoritmo Needleman-Wunsch
+<div align="left">
+<h3>💬 Otras cosas a mencionar</h3>
+</div>
 
-El algoritmo se basa en el llenado de una matriz de Programación Dinámica f(i,j).
-1. Cálculo del Puntaje (Score)
+- `userDecision()` viene de combinar los códigos presentes en [esta página](https://stackoverflow.com/questions/43972500/how-to-only-accept-y-or-n-in-users-input-in-c)
+- Para generar la imágen `matrizNW.png` las secuencias debe ser máximo de 54 nucleótidos, igualmente, no dejará que se genere si esto no se cumple.
+- No se realizarán los pasos del bash de limpieza si el archivo seleccionado tiene en el nombre escrito '_CLEAN-SHORT.fn'.
+- Se utiliza SVG para generar la imágen de backtrack ya que graphviz se tarda demasiado en realizar este trabajo.
 
-El valor de cada celda f(i,j) (para i>0 y j>0) es el máximo de tres opciones posibles:
-
-    Alineamiento por Diagonal (Match / Mismatch): Emparejar S[i] con T[j].
-    f(i−1,j−1)+U(S[i],T[j])
-
-    Alineamiento Superior (Gap en S): Insertar un gap (-) en la Cadena 1 (S).
-    f(i−1,j)+V
-
-    Alineamiento Izquierdo (Gap en T): Insertar un gap (-) en la Cadena 2 (T).
-    f(i,j−1)+V
-
-El puntaje máximo del alineamiento global se encuentra en la celda f(n,m).
-2. Lógica de Penalizaciones y Puntuación
-
-    Matriz de Puntuación U(c,d): Da como resultado el puntaje de similitud entre dos letras del alfabeto, definiendo el Match o Mismatch.
-
-    Valor de Penalización V: Es el puntaje fijo que se asigna cuando se introduce un gap (no emparejamiento) en cualquiera de las secuencias. Este valor es negativo.
-
-3. Fase de Reconstrucción (Backtrack)
-
-El Backtrack reconstruye el alineamiento que da el puntaje más alto, recorriendo el camino óptimo desde f(n,m) hasta f(0,0).
-
-    Diagonal: Se recorre si f[i][j] proviene de f[i−1][j−1]+U[S[i]][T[j]], resultando en un emparejamiento de caracteres (S[i] con T[j]).
-
-    Arriba: Se recorre si f[i][j] proviene de f[i−1][j]+V, resultando en un gap en la Cadena 1.
-
-    Izquierda: Se recorre si f[i][j] proviene de f[i][j−1]+V, resultando en un gap en la Cadena 2.
-
-El resultado final son las dos cadenas alineadas con gaps insertados.
-
- Visualización del Resultado
-
-El programa cumple con el requerimiento de entregar la reconstrucción del alineamiento óptimo utilizando Graphviz.
-Proceso de Visualización
-
-    El código genera el archivo alineamiento_resultado.dot.
-
-    Representa el alineamiento final como una secuencia lineal de nodos, donde cada nodo es un nucleótido o un gap.
-
-    Utiliza colores para indicar el estado de la alineación en cada posición:
-
-        Verde: Match (Coincidencia).
-
-        Rojo: Mismatch (Desigualdad).
-
-        Gris: Gap (Brecha).
-
-    El programa usa system para generar la imagen alineamiento_resultado.png.
