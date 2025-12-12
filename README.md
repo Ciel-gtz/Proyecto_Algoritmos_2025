@@ -1,5 +1,6 @@
 <div align="center">
-<h1>Implementación del Algoritmo Needleman-Wunsch 📈</h1>
+<h1>Implementación del Algoritmo Needleman-Wunsch <br>
+📈</h1>
 </div>
 
 **Nombres:** Ciel Pérez, Elia Ulloa <br>
@@ -63,11 +64,12 @@ Un ejemplo directo para correr el programa con lo que ya está en el repositorio
 
 📂 [Proyecto_Algoritmos_2025] <br>
  ┣ `README.md` <br>
- ┣ `needlemanWunsch.cpp` ----> Código fuente principal <br>
- ┣ `needlemanWunsch` --------> Ejecutable <br>
- ┣ `limpiarArchivos.bash` ---> Script para limpiar archivos FASTA (mantiene 'ATCG'). Resultados en carpeta FASTAS <br>
- ┣ `matrizPuntuacion.csv` ---> Puntuación de missmatch y gap <br>
- ┗ 📂 `FASTAS/`  Archivos de secuencias de entrada (.fna) creadas por el bash <br>
+ ┣ `needlemanWunsch.cpp` ----> Código fuente principal. <br>
+ ┣ `needlemanWunsch` ----------> Ejecutable. <br>
+ ┣ `limpiarArchivos.bash` ---> Script para limpiar archivos (mantiene 'ATCG'), se guardan en carpeta FASTAS. <br>
+ ┣ `matrizPuntuacion.csv` ---> Puntuación de missmatch y gap. <br>
+ ┣ 📂 `RESULTADOS/` ------------> Se guardan las imágenes y archivos relacionados. <br>
+ ┗ 📂 `FASTAS/` -----------------> Archivos de secuencias de entrada (.fna) creadas por el bash. <br>
 
 <br>
 
@@ -142,6 +144,7 @@ Un ejemplo directo para correr el programa con lo que ya está en el repositorio
 - No se realizarán los pasos del bash de limpieza si el archivo seleccionado tiene en el nombre escrito '_CLEAN-SHORT.fna'.
 - Se utiliza SVG para generar la imágen de backtrack ya que graphviz se tarda demasiado en realizar este trabajo.
 
-- Las secuencias de referencia vienen de los links: 
+- Las secuencias de referencia vienen de los links:
     - [`HUMAN.fna`](https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_000001405.40/)
     - [`RAT.fna`](https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_036323735.1/)
+       > Se pueden utilizar otras secuencias del mismo link para los alineamientos
